@@ -1,0 +1,18 @@
+CASE_NAME: Kapoor Traders v. Singh Enterprises (Synthetic Demo Case)
+COURT: Commercial Court, Demo District
+YEAR: 2020
+CITATION: (Demo) 2020 CC 014
+CASE_TYPE: Civil - Breach of Contract
+OUTCOME: Decreed in favour of the plaintiff for damages and refund of advance payment.
+---
+Kapoor Traders entered into a written supply agreement with Singh Enterprises dated 3 January 2019 for delivery of 500 units of industrial fittings by 28 February 2019, against an advance payment of 40% of the contract value.
+
+The plaintiff alleged that no delivery was made by the agreed date, that repeated written reminders sent by email and registered post went unanswered, and that the defendant later delivered only 120 units on 15 April 2019, of which 30 were defective.
+
+The defendant contended that delay was caused by a supply-chain disruption affecting a third-party raw material vendor, and that this constituted force majeure under Clause 9 of the agreement.
+
+The court examined Clause 9 and found that it required written notice of a force majeure event within seven days of its occurrence; no such notice had been sent by the defendant. The court held that a party seeking to rely on a force majeure clause must strictly comply with its procedural conditions, and failure to give timely notice defeats the defence even where the underlying disruption may have been genuine.
+
+The court further held that partial and defective delivery amounted to a fundamental breach entitling the plaintiff to treat the contract as repudiated and claim damages for the shortfall, plus refund of the advance payment attributable to undelivered units.
+
+Judgment was passed in favour of the plaintiff, awarding refund of the proportionate advance payment along with compensatory damages, with interest from the date of the plaint.

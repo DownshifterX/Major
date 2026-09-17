@@ -1,0 +1,16 @@
+CASE_NAME: Chandran v. Bright Future Publications (Synthetic Demo Case)
+COURT: District Civil Court, Demo District
+YEAR: 2017
+CITATION: (Demo) 2017 DCC 009
+CASE_TYPE: Civil - Defamation
+OUTCOME: Suit dismissed; publication held to fall within the defence of fair comment.
+---
+The plaintiff, a public official, sued Bright Future Publications and its editor for defamation over an article alleging financial irregularities in a municipal contract awarded during the plaintiff's tenure. The plaintiff claimed the article was false, malicious, and damaged his reputation.
+
+The defendant publication produced internal audit correspondence and a whistleblower's written statement that had been available to it prior to publication, arguing the article was a good-faith comment on a matter of public interest based on materials reasonably believed to be accurate at the time.
+
+The plaintiff argued the whistleblower's statement was later found to be exaggerated in an unrelated internal inquiry, and that this showed the defendant published without adequate verification.
+
+The court held that the defence of fair comment on a matter of public interest applies where the publisher had a reasonable basis for the statements at the time of publication, even if some details are later shown to be incomplete, provided there was no actual malice. The court found the defendant had made reasonable pre-publication inquiries, including seeking comment from the plaintiff's office (which had declined to respond), and that the core allegation regarding the contract was not shown to be fabricated.
+
+The suit for defamation was dismissed, with the court noting that public officials bear a higher threshold in defamation claims concerning matters of public administration.

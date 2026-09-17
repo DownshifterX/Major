@@ -1,0 +1,16 @@
+CASE_NAME: Iyer v. Metro Transit Corporation (Synthetic Demo Case)
+COURT: Motor Accident Claims Tribunal, Demo Region
+YEAR: 2021
+CITATION: (Demo) 2021 MACT 032
+CASE_TYPE: Civil - Motor Accident Compensation
+OUTCOME: Compensation awarded with contributory negligence apportioned 20% to the claimant.
+---
+The claimant, Iyer, suffered a fractured leg and related injuries when a Metro Transit Corporation bus collided with his two-wheeler at an intersection on 5 May 2020. The claimant sought compensation for medical expenses, loss of income during recovery, and pain and suffering.
+
+The Corporation contended that the claimant was travelling at excessive speed and had attempted to overtake the bus from the left side shortly before the collision, and that this contributed materially to the accident.
+
+Eyewitness statements from two independent bystanders were placed on record; one supported the claimant's account that the bus turned without signalling, while the other stated that the two-wheeler appeared to be moving unusually fast just before impact. A traffic-signal camera at the intersection had not recorded footage due to a technical fault at the time, which the tribunal noted as a gap in the available evidence rather than treating it as supporting either party's version.
+
+The tribunal held that both parties bore some responsibility: the bus driver failed to signal the turn, but the claimant's speed also contributed to the severity of the collision. Applying the principle of contributory negligence, the tribunal apportioned 20% of the responsibility to the claimant and reduced the compensation award accordingly.
+
+Compensation was awarded for medical treatment, a fixed sum for pain and suffering, and partial loss of income, after the 20% deduction for contributory negligence.

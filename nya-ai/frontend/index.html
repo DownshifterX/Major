@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nya(AI) — AI-Assisted Legal Analysis Platform | Ministry of Law &amp; Justice</title>
+<meta name="description" content="Nya(AI) is an AI-assisted legal case analysis and decision-support platform for legal professionals. Justice. Reimagined." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Gov top ribbon -->
+  <div class="gov-ribbon">
+    <div class="gov-ribbon-inner">
+      <span>&#127470;&#127475; Government of India</span>
+      <span class="ribbon-sep">|</span>
+      <span>Ministry of Law &amp; Justice</span>
+      <span class="ribbon-sep">|</span>
+      <span>Department of Justice</span>
+    </div>
+  </div>
+
+  <!-- Official header -->
+  <header class="gov-header">
+    <div class="gov-header-inner">
+      <div class="gov-emblem">
+        <div class="emblem-circle">
+          <div class="emblem-inner">&#9878;</div>
+        </div>
+      </div>
+      <div class="gov-title-block">
+        <div class="gov-title-main">Nya (AI)</div>
+        <div class="gov-title-sub">Artificial Intelligence — Legal Analysis &amp; Decision Support System</div>
+        <div class="gov-title-tagline">&#2360;&#2340;&#2381;&#2351;&#2350;&#2375;&#2357; &#2332;&#2351;&#2340;&#2375; &nbsp;|&nbsp; Justice. Reimagined.</div>
+      </div>
+      <div class="gov-header-right">
+        <div class="sys-label">SYSTEM STATUS</div>
+        <div class="sys-badge" id="health-badge">&#9679; ONLINE</div>
+        <div class="sys-version">v2.0 — PoC Release</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation bar -->
+  <nav class="gov-nav">
+    <div class="gov-nav-inner">
+      <div class="nav-link" data-view="dashboard" id="nav-dashboard">&#9658; Dashboard</div>
+      <div class="nav-link" data-view="corpus" id="nav-corpus">&#9658; Historical Corpus</div>
+      <div class="nav-divider"></div>
+      <div class="nav-label">ACTIVE CASES</div>
+      <div class="case-list" id="case-list"></div>
+      <div class="nav-divider"></div>
+      <button class="btn-new-case" id="btn-new-case">&#65291; Register New Case</button>
+    </div>
+  </nav>
+
+  <!-- Main content -->
+  <div class="page-wrapper">
+    <main class="main" id="main"></main>
+  </div>
+
+  <!-- Disclaimer footer -->
+  <footer class="gov-footer">
+    <div class="gov-footer-inner">
+      <div class="footer-disclaimer">
+        <strong>IMPORTANT DISCLAIMER:</strong> Nya(AI) is a decision-support tool for legal professionals only. It does not determine guilt, innocence, or sentencing.
+        Every AI-generated claim must be verified against linked sources. Human review by a qualified legal professional is mandatory before any action is taken.
+      </div>
+      <div class="footer-meta">
+        &copy; 2024 Nya(AI) Project &nbsp;|&nbsp; Proof of Concept &nbsp;|&nbsp; Not for production use &nbsp;|&nbsp; All rights reserved
+      </div>
+    </div>
+  </footer>
+
+  <!-- Source drawer -->
+  <div class="drawer-backdrop" id="drawer-backdrop"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div class="drawer-title-label">Source Reference</div>
+      <div class="drawer-close" id="drawer-close">&#10005; Close</div>
+    </div>
+    <div id="drawer-content"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

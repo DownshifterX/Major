@@ -1,0 +1,16 @@
+CASE_NAME: State v. R. Mehra (Synthetic Demo Case)
+COURT: District Sessions Court (Demo)
+YEAR: 2018
+CITATION: (Demo) 2018 DSC 001
+CASE_TYPE: Criminal - Theft
+OUTCOME: Convicted under Section 379 of the Indian Penal Code (Demo), sentenced to two years rigorous imprisonment.
+---
+The accused, R. Mehra, was alleged to have removed a laptop and mobile phone belonging to the complainant from a shared office space on the night of 14 March 2017. The complainant filed a First Information Report the following morning, stating that the office was locked at the time he left and that only three employees, including the accused, held keys.
+
+The prosecution relied on CCTV footage showing a person matching the accused's build entering the premises at 11:40 PM, and on recovery of the mobile phone from a pawn shop where the accused had allegedly sold it under a false name.
+
+The defence argued that the CCTV footage was of insufficient quality to conclusively identify the accused, and that the pawn shop owner's testimony was inconsistent regarding the date of sale, first stating 15 March and later 17 March 2017.
+
+The court held that dishonest intention (mens rea) coupled with removal of movable property without consent satisfied the ingredients of theft under Section 379 IPC (Demo). The inconsistency in the pawn shop owner's testimony was noted but held not to be fatal, given the corroborating CCTV evidence and recovery of the property. The court emphasized that recovery of stolen property from the possession of the accused, shortly after the theft, raises a presumption under evidence principles that the accused was either the thief or received the property knowing it was stolen, unless satisfactorily explained.
+
+The accused was convicted and sentenced to two years' rigorous imprisonment, with the court noting the absence of prior convictions as a mitigating factor at sentencing.

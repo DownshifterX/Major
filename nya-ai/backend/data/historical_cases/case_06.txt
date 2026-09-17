@@ -1,0 +1,16 @@
+CASE_NAME: Fernandes v. Orion Textiles Ltd. (Synthetic Demo Case)
+COURT: Labour Court, Demo Region
+YEAR: 2022
+CITATION: (Demo) 2022 LC 041
+CASE_TYPE: Civil - Wrongful Termination
+OUTCOME: Termination held illegal; reinstatement with 50% back wages ordered.
+---
+Fernandes, employed as a quality inspector for six years, was terminated with immediate effect on 12 January 2022 on the stated ground of "repeated performance failures." No prior written warning, performance improvement plan, or documented disciplinary proceeding preceded the termination.
+
+The employer relied on informal verbal feedback allegedly given by a supervisor on multiple occasions and produced a single undated internal email referencing "ongoing concerns" about the employee's output.
+
+The employee argued that the termination violated principles of natural justice, as no formal inquiry, show-cause notice, or opportunity to respond had been provided before the decision was taken, and that performance appraisals for the preceding three years were rated satisfactory or above.
+
+The Labour Court held that termination on grounds of alleged misconduct or performance requires, at minimum, a fair opportunity to respond and some contemporaneous documented record, particularly where earlier appraisals contradict the stated reason. An undated internal email, without corroborating contemporaneous records or a documented warning process, was held insufficient to establish just cause.
+
+The court held the termination to be illegal for want of due process and ordered reinstatement of the employee with 50% back wages for the intervening period, noting the employer's failure to follow a fair procedure as the central defect.

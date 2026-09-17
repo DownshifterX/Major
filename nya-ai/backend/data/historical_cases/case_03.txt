@@ -1,0 +1,16 @@
+CASE_NAME: Verma v. National Bank (Synthetic Demo Case)
+COURT: Metropolitan Magistrate Court, Demo City
+YEAR: 2019
+CITATION: (Demo) 2019 MM 077
+CASE_TYPE: Criminal - Dishonour of Cheque
+OUTCOME: Convicted under Section 138 of the Negotiable Instruments Act (Demo); directed to pay compensation.
+---
+The complainant, Verma, advanced a friendly loan of INR 5,00,000 to the accused on 10 June 2018, evidenced by a signed acknowledgment. In repayment, the accused issued a cheque dated 20 September 2018 for the full amount, which was dishonoured on presentation with the remark "insufficient funds."
+
+A statutory demand notice was issued within the prescribed period, and the accused failed to make payment within fifteen days of receipt, leading to the filing of a complaint under Section 138 of the Negotiable Instruments Act (Demo).
+
+The accused argued that the cheque had been issued as security for a separate, disputed transaction and not in discharge of a legally enforceable debt, and that the loan acknowledgment was fabricated.
+
+The court reiterated the settled presumption under Section 139 of the Act (Demo) that, once issuance of the cheque is admitted or proved, it is presumed to have been issued in discharge of a legally enforceable debt unless the accused rebuts this presumption on a preponderance of probability. The court found the accused's bare denial insufficient to rebut the presumption, particularly where the acknowledgment document was not shown to be forged through any expert evidence.
+
+The accused was convicted and directed to pay compensation equal to twice the cheque amount, in addition to a token sentence, with default sentence stipulated for non-payment.
