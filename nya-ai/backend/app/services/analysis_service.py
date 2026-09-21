@@ -80,16 +80,26 @@ def _retrieved_to_sources(db: Session, retrieved) -> List[Dict[str, Any]]:
 
 
 def run_similar_cases(db: Session, case: models.Case) -> Dict[str, Any]:
+    from .reranker import rerank_candidates
     query_text = _case_query_text(case)
-    retrieved = retrieve_historical_chunks(db, query_text, top_k=12, per_case_cap=2)
-    groups = aggregate_by_historical_case(retrieved)
+    retrieved = retrieve_historical_chunks(db, query_text, top_k=20, per_case_cap=3)
+    
+    # Run multi-signal reranking (semantic + lexical + statutes + issue alignment + citation authority + court hierarchy)
+    reranked = rerank_candidates(db, case, retrieved, top_k=8)
+    
+    # Use reranked chunks if available, else fallback to raw retrieved
+    selected_chunks = [r.chunk for r in reranked] if reranked else [r.chunk for r in retrieved]
+    reranked_dict = {r.chunk.id: r for r in reranked}
 
+    groups = aggregate_by_historical_case(retrieved)
     sources = _retrieved_to_sources(db, retrieved)
     ref_by_chunk = {s["chunk_id"]: s["ref_key"] for s in sources}
 
     retrieved_groups = []
     for hc_id, items in groups.items():
         hc = db.query(models.HistoricalCase).get(hc_id)
+        if not hc:
+            continue
         retrieved_groups.append({
             "historical_case": {
                 "id": hc.id, "case_name": hc.case_name, "court": hc.court,
@@ -97,7 +107,7 @@ def run_similar_cases(db: Session, case: models.Case) -> Dict[str, Any]:
             },
             "chunks": [
                 {"text": it.chunk.text, "hybrid_score": it.hybrid_score,
-                 "ref_key": ref_by_chunk[it.chunk.id]}
+                 "ref_key": ref_by_chunk.get(it.chunk.id, "S1")}
                 for it in items
             ],
         })
@@ -107,6 +117,17 @@ def run_similar_cases(db: Session, case: models.Case) -> Dict[str, Any]:
     result = provider.generate_structured(prompt, {
         "query_text": query_text, "retrieved_groups": retrieved_groups, "sources": sources,
     }, analysis_type="similar_cases")
+
+    # Augment similar cases with reranking score breakdown and explanation
+    if "similar_cases" in result and isinstance(result["similar_cases"], list):
+        for sc in result["similar_cases"]:
+            # Find matching reranked entry
+            match = next((r for r in reranked if r.historical_case.case_name == sc.get("case_name")), None)
+            if match:
+                sc["rerank_total_score"] = round(match.total_score, 3)
+                sc["score_breakdown"] = match.to_dict()["score_breakdown"]
+                if not sc.get("why_relevant") or "closest available" in sc.get("why_relevant", ""):
+                    sc["why_relevant"] = match.explanation
 
     analysis = _save_analysis(db, case.id, "similar_cases", result,
                                provider.__class__.__name__, sources)

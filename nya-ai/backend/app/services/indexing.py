@@ -30,6 +30,7 @@ def index_document(db: Session, document: models.Document) -> int:
             page_number=piece.page_number,
             char_start=piece.char_start,
             char_end=piece.char_end,
+            section_type=getattr(piece, "section_type", "body"),
             text=piece.text,
             embedding=vector,
         )

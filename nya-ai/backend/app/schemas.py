@@ -21,11 +21,19 @@ class CaseCreate(BaseModel):
     provisions: Optional[List[Dict[str, Any]]] = []
     facts: Optional[str] = ""
     issues: Optional[str] = ""
+    charges_issues: Optional[str] = None
     arguments: Optional[Dict[str, Any]] = {}
+    arguments_text: Optional[str] = None
     evidence: Optional[List[Dict[str, Any]]] = []
+    evidence_text: Optional[str] = None
     procedural_history: Optional[str] = ""
     judgment: Optional[str] = ""
     timeline: Optional[List[Dict[str, Any]]] = []
+
+
+class UrlImportRequest(BaseModel):
+    url: str
+    case_type: Optional[str] = "General"
 
 
 class CaseUpdate(BaseModel):

@@ -52,7 +52,7 @@ def retrieve_historical_chunks(
 ) -> List[RetrievedChunk]:
     """Retrieve the most relevant chunks from the historical corpus."""
     import os
-    from rank_bm25 import BM25Okapi
+    from rank_bm25 import BM25Plus
     
     top_k = int(os.getenv("TOP_K", str(top_k)))
     
@@ -65,11 +65,12 @@ def retrieve_historical_chunks(
     tokenized_query = list(_keywords(query_text))
 
     tokenized_corpus = [list(_keywords(c.text)) for c in chunks]
-    bm25 = BM25Okapi(tokenized_corpus)
+    bm25 = BM25Plus(tokenized_corpus)
     lexical_scores = bm25.get_scores(tokenized_query)
     
-    # Normalize lexical scores roughly
-    max_lexical = max(lexical_scores) if lexical_scores.size > 0 and max(lexical_scores) > 0 else 1.0
+    # BM25Plus guarantees strictly non-negative lower-bounded scores
+    clamped_scores = [max(0.0, float(s)) for s in lexical_scores]
+    max_lexical = max(clamped_scores) if clamped_scores and max(clamped_scores) > 0 else 1.0
 
     scored: List[RetrievedChunk] = []
     seen_texts = set()
@@ -80,7 +81,7 @@ def retrieve_historical_chunks(
         seen_texts.add(norm_text)
 
         sem = cosine_similarity(query_vec, c.embedding or [])
-        kw = lexical_scores[i] / max_lexical
+        kw = clamped_scores[i] / max_lexical
         hybrid = 0.7 * sem + 0.3 * kw
         scored.append(RetrievedChunk(chunk=c, semantic_score=sem, keyword_score=kw, hybrid_score=hybrid))
 

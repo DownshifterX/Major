@@ -97,9 +97,11 @@ async function refreshSidebar() {
   });
   document.getElementById("nav-dashboard").classList.toggle("active", state.view === "dashboard");
   document.getElementById("nav-corpus").classList.toggle("active", state.view === "corpus");
+  document.getElementById("nav-search").classList.toggle("active", state.view === "search");
 }
 document.getElementById("nav-dashboard").addEventListener("click", () => { state.view = "dashboard"; state.currentCaseId = null; render(); });
 document.getElementById("nav-corpus").addEventListener("click", () => { state.view = "corpus"; state.currentCaseId = null; render(); });
+document.getElementById("nav-search").addEventListener("click", () => { state.view = "search"; state.currentCaseId = null; render(); });
 document.getElementById("btn-new-case").addEventListener("click", () => { state.view = "new-case"; state.currentCaseId = null; render(); });
 
 // ------------------------------------------------------------ dashboard --
@@ -156,7 +158,7 @@ async function renderCorpus() {
         <div class="sub">The precedent library used for retrieval</div>
       </div>
     </div>
-    <div class="synthetic-note">These are synthetic demo cases created for this proof-of-concept — not real judgments. Replace with a licensed corpus for production use.</div>
+    <div class="synthetic-note" style="background:#e8f0fe; color:#1a73e8; border-color:#c5d7f8;">Real historical precedents from the Indian legal corpus (Indian Kanoon). Includes Supreme Court, High Court, and Tribunal judgments. Grounded retrieval is powered by this corpus.</div>
     <div class="grid cols-2" id="corpus-grid"></div>
   `;
   const grid = document.getElementById("corpus-grid");
@@ -177,27 +179,64 @@ async function renderCorpus() {
 // ------------------------------------------------------------ new case --
 function renderNewCase() {
   main.innerHTML = `
-    <div class="page-header"><div><h1>New case</h1><div class="sub">Provide what you currently have — you can add more later</div></div></div>
-    <div class="card" style="max-width:720px;">
-      <label>Case title</label>
-      <input type="text" id="f-title" placeholder="e.g. State v. A. Nair — Alleged Theft" />
-      <label>Case type</label>
-      <input type="text" id="f-type" placeholder="e.g. Criminal - Theft, Civil - Contract" />
-      <label>Facts</label>
-      <textarea id="f-facts" placeholder="What happened, in your own words"></textarea>
-      <label>Charges / legal issues</label>
-      <textarea id="f-issues" placeholder="What is being alleged or disputed"></textarea>
-      <label>Arguments (prosecution/defence or both sides, one per line)</label>
-      <textarea id="f-arguments" placeholder="Prosecution: ...&#10;Defence: ..."></textarea>
-      <label>Evidence on hand (one item per line)</label>
-      <textarea id="f-evidence" placeholder="e.g. CCTV footage, signed statement"></textarea>
-      <div class="form-actions">
-        <button class="btn primary" id="f-submit">Create case</button>
-        <button class="btn ghost" id="f-cancel">Cancel</button>
+    <div class="page-header"><div><h1>Register New Case</h1><div class="sub">Import from an online judgment URL or create manually</div></div></div>
+    
+    <div class="grid cols-2" style="gap:24px; max-width:1050px;">
+      <div class="card">
+        <h3 style="margin-top:0;">Option A: Import from URL (Indian Kanoon / Court)</h3>
+        <p style="font-size:13px; color:var(--muted); margin-bottom:14px;">Paste an Indian Kanoon or public court judgment URL. Nya AI will acquire the document, clean the text, extract its legal profile, and index it automatically.</p>
+        <label>Judgment URL</label>
+        <input type="url" id="f-url" placeholder="https://indiankanoon.org/doc/154031036/" />
+        <label>Case Type</label>
+        <input type="text" id="f-url-type" placeholder="e.g. Criminal, Civil, Constitutional" value="Criminal" />
+        <div class="form-actions" style="margin-top:16px;">
+          <button class="btn primary" id="f-url-submit">Acquire &amp; Index Case</button>
+        </div>
+        <div id="url-status" style="margin-top:10px;"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0;">Option B: Enter Case Details Manually</h3>
+        <label>Case title</label>
+        <input type="text" id="f-title" placeholder="e.g. State v. A. Nair — Alleged Theft" />
+        <label>Case type</label>
+        <input type="text" id="f-type" placeholder="e.g. Criminal - Theft, Civil - Contract" />
+        <label>Facts</label>
+        <textarea id="f-facts" placeholder="What happened, in your own words"></textarea>
+        <label>Charges / legal issues</label>
+        <textarea id="f-issues" placeholder="What is being alleged or disputed"></textarea>
+        <label>Arguments (one per line)</label>
+        <textarea id="f-arguments" placeholder="Prosecution: ...&#10;Defence: ..."></textarea>
+        <label>Evidence on hand (one item per line)</label>
+        <textarea id="f-evidence" placeholder="e.g. CCTV footage, signed statement"></textarea>
+        <div class="form-actions">
+          <button class="btn primary" id="f-submit">Create Case</button>
+          <button class="btn ghost" id="f-cancel">Cancel</button>
+        </div>
       </div>
     </div>
   `;
+
   document.getElementById("f-cancel").addEventListener("click", () => { state.view = "dashboard"; render(); });
+  
+  // URL Import handler
+  document.getElementById("f-url-submit").addEventListener("click", async () => {
+    const url = document.getElementById("f-url").value.trim();
+    if (!url) { alert("Please enter a valid judgment URL."); return; }
+    const status = document.getElementById("url-status");
+    status.innerHTML = `<div class="loading-line">Acquiring document, extracting legal profile & indexing…</div>`;
+    try {
+      const c = await postJSON("/cases/from-url", {
+        url,
+        case_type: document.getElementById("f-url-type").value.trim() || "General",
+      });
+      await openCase(c.id);
+    } catch (err) {
+      status.innerHTML = `<div style="color:var(--danger); font-size:13px;">Acquisition failed: ${esc(err.message)}</div>`;
+    }
+  });
+
+  // Manual Form handler
   document.getElementById("f-submit").addEventListener("click", async () => {
     const title = document.getElementById("f-title").value.trim();
     if (!title) { alert("Please give the case a title."); return; }
@@ -233,6 +272,7 @@ const TABS = [
   ["overview", "Overview"],
   ["documents", "Documents"],
   ["similar", "Similar Cases"],
+  ["graph", "Citation Graph"],
   ["legal", "Legal Analysis"],
   ["prosecution-defence", "Arguments"],
   ["evidence", "Evidence"],
@@ -302,12 +342,83 @@ function renderTabContent() {
     case "overview": return renderOverviewTab(holder);
     case "documents": return renderDocumentsTab(holder);
     case "similar": return renderAnalysisTab(holder, "similar_cases", "/similar-cases", renderSimilarCases);
+    case "graph": return renderGraphTab(holder);
     case "legal": return renderAnalysisTab(holder, "legal_provisions", "/legal-provisions", renderLegalProvisions);
     case "prosecution-defence": return renderAnalysisTab(holder, "prosecution_defence", "/prosecution-defence", renderProsecutionDefence);
     case "evidence": return renderAnalysisTab(holder, "evidence_gaps", "/evidence-gaps", renderEvidenceGaps);
     case "contradictions": return renderAnalysisTab(holder, "contradictions", "/contradictions", renderContradictions);
     case "compare": return renderCompareTab(holder);
     case "brief": return renderAnalysisTab(holder, "brief", "/brief", renderBrief);
+  }
+}
+
+async function renderGraphTab(holder) {
+  holder.innerHTML = `<div class="loading-line">Building precedent citation graph…</div>`;
+  try {
+    const data = await getJSON(`/cases/${state.currentCaseId}/citation-graph`);
+    const nodes = data.nodes || [];
+    const links = data.links || [];
+    const metrics = data.metrics || {};
+
+    holder.innerHTML = `
+      <div class="page-header" style="margin-bottom:16px;">
+        <div>
+          <h2 style="font-family:var(--serif); font-size:18px; margin:0;">Citation &amp; Precedent Authority Network</h2>
+          <div class="sub">Inter-case citation relationships across the historical precedent corpus</div>
+        </div>
+      </div>
+
+      <div class="grid cols-3" style="margin-bottom:20px;">
+        <div class="card"><div class="stat-num">${metrics.node_count || nodes.length}</div><div class="stat-label">Connected Precedents</div></div>
+        <div class="card"><div class="stat-num">${metrics.edge_count || links.length}</div><div class="stat-label">Citation Paths</div></div>
+        <div class="card"><div class="stat-num">${metrics.focus_cited_by_count || 0}</div><div class="stat-label">Times Cited Authority</div></div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;">
+        <h3 style="margin-top:0;">Precedent Authority Ranking</h3>
+        <div style="font-size:12.5px; color:var(--muted); margin-bottom:12px;">Precedents ranked by in-degree citation frequency in case law.</div>
+        <div class="grid cols-2" style="gap:12px;">
+          ${nodes.slice(0, 10).map(n => `
+            <div style="border:1px solid var(--border); padding:10px 14px; border-radius:4px; background:#fff;">
+              <div style="font-weight:600; font-size:13.5px; color:var(--primary);">${esc(n.label)}</div>
+              <div style="font-size:12px; color:var(--muted); margin-top:2px;">${esc(n.court || "")} ${n.year ? "· " + n.year : ""}</div>
+              <div style="margin-top:6px; font-size:12px;">
+                <span class="score-badge" style="background:#e8f0fe; color:#1a73e8;">Cited ${n.in_degree} times</span>
+                ${n.out_degree ? `<span class="score-badge" style="background:#f1f3f4; color:#5f6368;">Cites ${n.out_degree} cases</span>` : ""}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0;">Citation Relationships</h3>
+        <table style="width:100%; border-collapse:collapse; font-size:12.5px; margin-top:8px;">
+          <thead>
+            <tr style="text-align:left; border-bottom:2px solid var(--border); color:var(--muted);">
+              <th style="padding:6px 8px;">Citing Case</th>
+              <th style="padding:6px 8px;">Relation</th>
+              <th style="padding:6px 8px;">Cited Authority</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${links.slice(0, 15).map(l => {
+              const srcNode = nodes.find(n => n.id === l.source) || { label: l.source };
+              const tgtNode = nodes.find(n => n.id === l.target) || { label: l.target };
+              return `
+                <tr style="border-bottom:1px solid #f0f0f0;">
+                  <td style="padding:8px; font-weight:500;">${esc(srcNode.label)}</td>
+                  <td style="padding:8px; color:var(--accent); font-family:monospace;">— cites →</td>
+                  <td style="padding:8px; font-weight:500;">${esc(tgtNode.label)}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  } catch (e) {
+    holder.innerHTML = `<div class="empty-state"><div class="empty-title">Couldn't load citation graph</div>${esc(e.message)}</div>`;
   }
 }
 
@@ -404,10 +515,21 @@ function renderSimilarCases(holder, result) {
     return;
   }
   cases.forEach(sc => {
+    const b = sc.score_breakdown || {};
+    const breakdownHtml = sc.score_breakdown ? `
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;">
+        <span class="score-badge" style="background:#e8f0fe; color:#1a73e8;" title="Embedding semantic cosine similarity">Semantic: ${b.semantic != null ? b.semantic : '—'}</span>
+        <span class="score-badge" style="background:#fce8e6; color:#c5221f;" title="BM25 keyword overlap">BM25: ${b.lexical != null ? b.lexical : '—'}</span>
+        <span class="score-badge" style="background:#e6f4ea; color:#137333;" title="Statutory section match">Statute: ${b.statute_overlap != null ? b.statute_overlap : '—'}</span>
+        <span class="score-badge" style="background:#fef7e0; color:#b06000;" title="Precedent citation frequency">Authority: ${b.citation_authority != null ? b.citation_authority : '—'}</span>
+      </div>
+    ` : "";
+
     holder.appendChild(el(`
       <div class="result-card">
-        <div class="rc-title">${esc(sc.case_name)} ${sc.relevance_score != null ? `<span class="score-badge">relevance ${sc.relevance_score}</span>` : ""}</div>
+        <div class="rc-title">${esc(sc.case_name)} ${sc.relevance_score != null ? `<span class="score-badge">relevance ${sc.relevance_score}</span>` : ""} ${sc.rerank_total_score != null ? `<span class="score-badge" style="background:var(--primary); color:#fff;">rerank ${sc.rerank_total_score}</span>` : ""}</div>
         <div class="rc-meta">${esc(sc.court || "")} ${sc.year ? "· " + sc.year : ""}</div>
+        ${breakdownHtml}
         <div class="rc-body">${esc(sc.why_relevant)}</div>
         <div style="margin-top:8px; font-style:italic; color:var(--muted); font-size:12.6px;">"${esc((sc.matching_excerpt || "").slice(0, 220))}…"</div>
         <div style="margin-top:8px;">${refChips([sc.ref_key])}</div>
@@ -600,8 +722,66 @@ async function render() {
   await refreshSidebar();
   if (state.view === "dashboard") return renderDashboard();
   if (state.view === "corpus") return renderCorpus();
+  if (state.view === "search") return renderSearch();
   if (state.view === "new-case") return renderNewCase();
   if (state.view === "case") return renderCaseWorkspace();
+}
+
+// --------------------------------------------------------- legal research search
+async function renderSearch() {
+  main.innerHTML = `
+    <div class="page-header">
+      <div>
+        <h1>Legal Research</h1>
+        <div class="sub">Hybrid semantic + BM25 search across the Indian legal precedent corpus</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:20px;">
+      <div style="display:flex; gap:12px; align-items:center;">
+        <input type="text" id="search-q" placeholder="e.g. Section 302 IPC murder appeal Supreme Court" style="flex:1; font-size:15px;" />
+        <button class="btn primary" id="search-btn" style="white-space:nowrap;">Search Corpus</button>
+      </div>
+      <div style="font-size:12px; color:var(--muted); margin-top:8px;">Searches all ${0} indexed chunks with hybrid retrieval (semantic embedding + BM25 lexical).</div>
+    </div>
+    <div id="search-results"></div>
+  `;
+
+  const doSearch = async () => {
+    const q = document.getElementById("search-q").value.trim();
+    if (!q) return;
+    const resultsEl = document.getElementById("search-results");
+    resultsEl.innerHTML = `<div class="loading-line">Searching…</div>`;
+    try {
+      const results = await getJSON(`/api/search?q=${encodeURIComponent(q)}&limit=15`);
+      if (!results.length) {
+        resultsEl.innerHTML = `<div class="empty-state"><div class="empty-title">No results found</div>Try broader search terms or ensure the corpus has been ingested.</div>`;
+        return;
+      }
+      resultsEl.innerHTML = "";
+      results.forEach(r => {
+        resultsEl.appendChild(el(`
+          <div class="result-card">
+            <div class="rc-title">
+              ${esc(r.case_name)}
+              ${r.doc_url ? `<a href="${esc(r.doc_url)}" target="_blank" style="font-size:12px; color:var(--accent); font-weight:400; margin-left:8px;">↗ Source</a>` : ""}
+            </div>
+            <div class="rc-meta">${esc(r.court || "")} ${r.year ? "· " + r.year : ""}</div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;">
+              <span class="score-badge" style="background:#e8f0fe; color:#1a73e8;" title="Embedding cosine similarity">Semantic: ${r.semantic_score}</span>
+              <span class="score-badge" style="background:#fce8e6; color:#c5221f;" title="BM25 lexical match">BM25: ${r.lexical_score}</span>
+              <span class="score-badge" style="background:#e6f4ea; color:#137333;" title="Combined score">Hybrid: ${r.hybrid_score}</span>
+            </div>
+            <div class="rc-body" style="font-style:italic; color:var(--muted); font-size:12.6px;">"${esc((r.excerpt || "").slice(0, 250))}…"</div>
+          </div>
+        `));
+      });
+    } catch (e) {
+      resultsEl.innerHTML = `<div class="empty-state"><div class="empty-title">Search failed</div>${esc(e.message)}</div>`;
+    }
+  };
+
+  document.getElementById("search-btn").addEventListener("click", doSearch);
+  document.getElementById("search-q").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
 }
 
 render();

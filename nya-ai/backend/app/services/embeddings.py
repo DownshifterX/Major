@@ -105,6 +105,8 @@ def get_embedding_provider() -> EmbeddingProvider:
 
 
 def cosine_similarity(a: List[float], b: List[float]) -> float:
+    if not a or not b or len(a) != len(b):
+        return 0.0  # dimension mismatch or empty vectors
     va, vb = np.array(a), np.array(b)
     na, nb = np.linalg.norm(va), np.linalg.norm(vb)
     if na == 0 or nb == 0:

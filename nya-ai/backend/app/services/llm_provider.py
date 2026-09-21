@@ -291,15 +291,49 @@ class MockLLMProvider(LLMProvider):
         }
 
     def _case_extraction(self, ctx: Dict[str, Any]) -> Dict[str, Any]:
+        from .legal_structure import extract_legal_sections_structure
+        from .text_cleaner import extract_title_and_year
+        text = ctx.get("text", "")
+        if not text:
+            return {
+                "title": "Untitled Case",
+                "court": "Unknown Court",
+                "facts": "No text provided.",
+                "issues": "",
+                "procedural_history": "",
+                "timeline": [],
+            }
+        
+        extracted = extract_legal_sections_structure(text)
+        first_line = text.splitlines()[0] if text.splitlines() else ""
+        title, year = extract_title_and_year(first_line)
+        
+        parties = []
+        if "vs" in title.lower() or " v. " in title.lower():
+            delim = "vs" if "vs" in title.lower() else "v."
+            p1, _, p2 = title.lower().partition(delim)
+            parties = [
+                {"role": "petitioner", "name": p1.strip().title()},
+                {"role": "respondent", "name": p2.strip().title()},
+            ]
+
         return {
-            "title": "Extracted Case (Mock)",
-            "case_number": "MOCK-1234",
-            "court": "Mock Supreme Court",
-            "jurisdiction": "Mock Jurisdiction",
-            "facts": "This is a mock extracted fact pattern. To get real extraction, set LLM_PROVIDER=anthropic.",
-            "issues": "Whether the extraction pipeline correctly assembled the case.",
-            "procedural_history": "Uploaded via MockLLMProvider.",
-            "timeline": [{"date": "2024-01-01", "event": "Document uploaded."}]
+            "title": title if title and title != "Unknown Case" else (first_line[:80] or "Extracted Legal Case"),
+            "case_number": f"{year or 2024}-LEGAL",
+            "court": "Supreme Court of India" if "supreme court" in text.lower() else "High Court",
+            "jurisdiction": "India",
+            "facts": extracted["facts"] or text[:500],
+            "issues": "\n".join(extracted["legal_issues"]) if isinstance(extracted["legal_issues"], list) else str(extracted["legal_issues"]),
+            "arguments": {
+                "petitioner": extracted.get("petitioner_arguments", []),
+                "respondent": extracted.get("respondent_arguments", []),
+            },
+            "evidence": [{"description": str(e)} for e in extracted.get("evidence", [])],
+            "provisions": [{"act": l, "section": ""} for l in extracted.get("laws", [])] + [{"act": "", "section": s} for s in extracted.get("sections", [])],
+            "procedural_history": f"Case records acquired and structured by Nya AI extraction pipeline.",
+            "judgment": extracted.get("decision", ""),
+            "parties": parties,
+            "timeline": [{"date": f"{year or 2024}", "event": "Judgment/Order issued."}] if year else [],
         }
 
 

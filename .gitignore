@@ -1,0 +1,29 @@
+# Datasets & Large Data
+dataset - hugging face/*.parquet
+dataset - hugging face/*.xlsx
+dataset - hugging face/*.csv
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+env/
+venv/
+*.db
+*.sqlite3
+
+# Uploads and temporary assets
+nya-ai/backend/data/nya.db
+nya-ai/backend/data/uploads/*
+*.zip
+
+# Environment & credentials
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db

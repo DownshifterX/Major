@@ -48,6 +48,54 @@ class Case(Base):
     documents = relationship("Document", back_populates="case", cascade="all, delete-orphan")
     analyses = relationship("Analysis", back_populates="case", cascade="all, delete-orphan")
 
+    def num_chunks_indexed(self) -> int:
+        return sum(doc.num_chunks or 0 for doc in self.documents)
+
+    @property
+    def charges_issues(self) -> str:
+        return self.issues or ""
+
+    @charges_issues.setter
+    def charges_issues(self, val: str):
+        self.issues = val or ""
+
+    @property
+    def arguments_text(self) -> str:
+        if isinstance(self.arguments, dict):
+            parts = []
+            for role, args in self.arguments.items():
+                if isinstance(args, list):
+                    parts.extend([f"{role}: {a}" for a in args])
+                elif args:
+                    parts.append(f"{role}: {args}")
+            return "\n".join(parts)
+        elif isinstance(self.arguments, str):
+            return self.arguments
+        return ""
+
+    @arguments_text.setter
+    def arguments_text(self, val: str):
+        self.arguments = {"general": [line.strip() for line in (val or "").splitlines() if line.strip()]}
+
+    @property
+    def evidence_text(self) -> str:
+        if isinstance(self.evidence, list):
+            items = []
+            for e in self.evidence:
+                if isinstance(e, dict):
+                    desc = e.get("description") or e.get("name") or str(e)
+                    items.append(desc)
+                elif e:
+                    items.append(str(e))
+            return "\n".join(items)
+        elif isinstance(self.evidence, str):
+            return self.evidence
+        return ""
+
+    @evidence_text.setter
+    def evidence_text(self, val: str):
+        self.evidence = [{"description": line.strip()} for line in (val or "").splitlines() if line.strip()]
+
 
 class HistoricalCase(Base):
     """An entry in the historical precedent corpus used for retrieval."""
@@ -61,8 +109,14 @@ class HistoricalCase(Base):
     case_type = Column(String, nullable=True)
     outcome = Column(Text, default="")
     summary = Column(Text, default="")
-    is_synthetic = Column(Boolean, default=True)   # PoC corpus is synthetic/demo unless replaced
-    source_note = Column(String, default="Synthetic demo corpus for Nya(AI) PoC. Not a real judgment.")
+    doc_url = Column(String, nullable=True)
+    cites_count = Column(Integer, default=0)
+    cited_by_count = Column(Integer, default=0)
+    court_normalized = Column(String, nullable=True)
+    legal_sections = Column(JSON, default=list)
+    laws = Column(JSON, default=list)
+    is_synthetic = Column(Boolean, default=False)
+    source_note = Column(String, default="")
     created_at = Column(DateTime, default=now)
 
     documents = relationship("Document", back_populates="historical_case", cascade="all, delete-orphan")
@@ -77,7 +131,11 @@ class Document(Base):
     historical_case_id = Column(String, ForeignKey("historical_cases.id"), nullable=True)
     filename = Column(String, nullable=False)
     doc_type = Column(String, default="general")   # fir/complaint/statement/judgment/evidence/other
-    source = Column(String, default="upload")        # upload | seed_corpus
+    source = Column(String, default="upload")        # upload | seed_corpus | url_acquisition
+    source_url = Column(String, nullable=True)
+    document_status = Column(String, default="ready") # ready | acquiring | failed | cached
+    document_hash = Column(String, nullable=True)
+    retrieved_at = Column(DateTime, nullable=True)
     upload_date = Column(DateTime, default=now)
     full_text = Column(Text, default="")
     num_chunks = Column(Integer, default=0)
@@ -96,6 +154,7 @@ class Chunk(Base):
     case_id = Column(String, ForeignKey("cases.id"), nullable=True)                 # denormalized
     historical_case_id = Column(String, ForeignKey("historical_cases.id"), nullable=True)
     chunk_index = Column(Integer, default=0)
+    section_type = Column(String, default="body")   # facts | issues | arguments | evidence | laws | reasoning | decision | body
     page_number = Column(Integer, nullable=True)
     char_start = Column(Integer, default=0)
     char_end = Column(Integer, default=0)

@@ -20,6 +20,7 @@ class TextChunk:
     index: int
     text: str
     page_number: Optional[int]
+    section_type: str = "body"
     char_start: int = 0
     char_end: int = 0
 

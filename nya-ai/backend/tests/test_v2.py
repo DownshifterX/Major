@@ -50,12 +50,19 @@ def test_case_extraction_mock(db):
     db.add(case)
     db.commit()
     
-    extract_case_profile(db, case.id, "Some test document text.")
+    doc_sample = (
+        "State Of Maharashtra vs Anand Rao on 12 May, 2021\n\n"
+        "The petitioner filed this application under Section 482 of CrPC.\n\n"
+        "Facts of the case: The respondent was alleged to have committed an offence under Section 302 IPC.\n\n"
+        "Learned counsel for the petitioner submitted that evidence was lacking.\n\n"
+        "Accordingly, the appeal stands allowed."
+    )
+    extract_case_profile(db, case.id, doc_sample)
     
     db.refresh(case)
-    assert case.title == "Extracted Case (Mock)"
-    assert case.case_number == "MOCK-1234"
-    assert "mock extracted fact" in case.facts
+    assert "State Of Maharashtra" in case.title
+    assert "Section 482" in case.facts or "Section 302" in case.facts
+    assert case.court is not None
 
 def test_hybrid_retrieval(db):
     # Create historical case
@@ -81,8 +88,16 @@ def test_hybrid_retrieval(db):
 
 def test_background_workflow(db, monkeypatch):
     import app.services.workflow
-    # mock SessionLocal to use the test db
-    monkeypatch.setattr(app.services.workflow, "SessionLocal", lambda: db)
+    # mock SessionLocal to return a session wrapper that doesn't close our test db fixture
+    class NonClosingSession:
+        def __init__(self, session):
+            self._s = session
+        def __getattr__(self, name):
+            return getattr(self._s, name)
+        def close(self):
+            pass
+
+    monkeypatch.setattr(app.services.workflow, "SessionLocal", lambda: NonClosingSession(db))
     
     case = models.Case(title="Workflow Case")
     db.add(case)
