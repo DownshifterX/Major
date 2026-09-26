@@ -7,14 +7,34 @@ from ..database import get_db
 router = APIRouter(prefix="/historical-cases", tags=["historical"])
 
 
+from sqlalchemy import func
+
 @router.get("")
 def list_historical_cases(db: Session = Depends(get_db)):
-    rows = db.query(models.HistoricalCase).all()
+    rows = (
+        db.query(
+            models.HistoricalCase.id,
+            models.HistoricalCase.case_name,
+            models.HistoricalCase.court,
+            models.HistoricalCase.year,
+            models.HistoricalCase.citation,
+            models.HistoricalCase.case_type,
+            models.HistoricalCase.outcome,
+            models.HistoricalCase.summary,
+            models.HistoricalCase.is_synthetic,
+            models.HistoricalCase.source_note,
+            func.count(models.Document.id).label("document_count"),
+        )
+        .outerjoin(models.Document, models.Document.historical_case_id == models.HistoricalCase.id)
+        .group_by(models.HistoricalCase.id)
+        .order_by(models.HistoricalCase.case_name.asc())
+        .all()
+    )
     return [{
-        "id": r.id, "case_name": r.case_name, "court": r.court, "year": r.year,
-        "citation": r.citation, "case_type": r.case_type, "outcome": r.outcome,
-        "summary": r.summary, "is_synthetic": r.is_synthetic, "source_note": r.source_note,
-        "document_count": len(r.documents),
+        "id": r[0], "case_name": r[1], "court": r[2], "year": r[3],
+        "citation": r[4], "case_type": r[5], "outcome": r[6],
+        "summary": r[7], "is_synthetic": r[8], "source_note": r[9],
+        "document_count": r[10],
     } for r in rows]
 
 

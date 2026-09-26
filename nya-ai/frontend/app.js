@@ -9,6 +9,7 @@ const state = {
   currentTab: "overview",
   documents: [],
   analyses: {},      // analysis_type -> result object (with .citations)
+  citationGraphs: {}, // caseId -> citation graph data
   citationsMap: {},  // ref_key -> citation, scoped to last-rendered analysis
   loadingAnalysis: null,
   compareTargetId: null,
@@ -44,6 +45,46 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 function nl2br(s) { return esc(s).replace(/\n/g, "<br/>"); }
+
+// -------------------------------------------------------- MODAL helper ----
+function showErrorModal(message) {
+  // Remove any existing modal
+  const existing = document.getElementById("nya-modal-overlay");
+  if (existing) existing.remove();
+
+  const overlay = el(`
+    <div id="nya-modal-overlay" style="
+      position:fixed; inset:0; background:rgba(0,0,0,0.52); z-index:9000;
+      display:flex; align-items:center; justify-content:center;
+      animation:fadeIn .18s ease;
+    ">
+      <div style="
+        background:#fff; border-radius:8px; max-width:520px; width:92%; padding:32px 36px;
+        box-shadow:0 8px 40px rgba(0,0,0,0.26); position:relative;
+        border-top:5px solid #c5221f;
+      ">
+        <div style="display:flex; align-items:flex-start; gap:14px; margin-bottom:18px;">
+          <div style="font-size:28px; line-height:1;">⚠️</div>
+          <div>
+            <div style="font-weight:700; font-size:16px; color:#c5221f; margin-bottom:6px;">Case Type Not Supported</div>
+            <div style="font-size:14px; color:#333; line-height:1.6;">${esc(message)}</div>
+          </div>
+        </div>
+        <div style="background:#fff3cd; border:1px solid #ffeeba; border-radius:4px; padding:12px 14px; font-size:13px; color:#856404; margin-bottom:20px;">
+          <strong>NyaAI</strong> is currently specialised for <strong>Land &amp; Property Cases</strong>.
+          Support for other case types (Criminal, Civil, Matrimonial, etc.) will be added in future releases.
+        </div>
+        <button id="nya-modal-close" style="
+          background:#1a3a5c; color:#fff; border:none; border-radius:4px; padding:10px 24px;
+          font-size:14px; font-weight:600; cursor:pointer; letter-spacing:.04em;
+        ">Understood — Go Back</button>
+      </div>
+    </div>
+  `);
+  document.body.appendChild(overlay);
+  document.getElementById("nya-modal-close").addEventListener("click", () => overlay.remove());
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
+}
 
 function refChips(refs) {
   if (!refs || !refs.length) return "";
@@ -86,8 +127,11 @@ function setCitationsMap(citations) {
 }
 
 // -------------------------------------------------------------- sidebar --
-async function refreshSidebar() {
+async function fetchCases() {
   state.cases = await getJSON("/cases");
+}
+
+function renderSidebar() {
   const list = document.getElementById("case-list");
   list.innerHTML = "";
   state.cases.forEach(c => {
@@ -99,10 +143,32 @@ async function refreshSidebar() {
   document.getElementById("nav-corpus").classList.toggle("active", state.view === "corpus");
   document.getElementById("nav-search").classList.toggle("active", state.view === "search");
 }
-document.getElementById("nav-dashboard").addEventListener("click", () => { state.view = "dashboard"; state.currentCaseId = null; render(); });
-document.getElementById("nav-corpus").addEventListener("click", () => { state.view = "corpus"; state.currentCaseId = null; render(); });
-document.getElementById("nav-search").addEventListener("click", () => { state.view = "search"; state.currentCaseId = null; render(); });
-document.getElementById("btn-new-case").addEventListener("click", () => { state.view = "new-case"; state.currentCaseId = null; render(); });
+
+async function refreshSidebar() {
+  await fetchCases();
+  renderSidebar();
+}
+
+document.getElementById("nav-dashboard").addEventListener("click", () => {
+  state.view = "dashboard";
+  state.currentCaseId = null;
+  render({ refetch: false });
+});
+document.getElementById("nav-corpus").addEventListener("click", () => {
+  state.view = "corpus";
+  state.currentCaseId = null;
+  render({ refetch: false });
+});
+document.getElementById("nav-search").addEventListener("click", () => {
+  state.view = "search";
+  state.currentCaseId = null;
+  render({ refetch: false });
+});
+document.getElementById("btn-new-case").addEventListener("click", () => {
+  state.view = "new-case";
+  state.currentCaseId = null;
+  render({ refetch: false });
+});
 
 // ------------------------------------------------------------ dashboard --
 async function renderDashboard() {
@@ -128,7 +194,10 @@ async function renderDashboard() {
     <h3 style="font-family:var(--serif); font-weight:400; font-size:17px; margin-bottom:14px;">Recent cases</h3>
     <div class="grid cols-2" id="dash-case-grid"></div>
   `;
-  document.getElementById("dash-new-case").addEventListener("click", () => { state.view = "new-case"; render(); });
+  document.getElementById("dash-new-case").addEventListener("click", () => {
+    state.view = "new-case";
+    render({ refetch: false });
+  });
 
   const grid = document.getElementById("dash-case-grid");
   if (!cases.length) {
@@ -141,16 +210,49 @@ async function renderDashboard() {
   cases.forEach(c => {
     const card = el(`<div class="card case-card">
       <div class="title">${esc(c.title)}</div>
-      <div class="meta">${esc(c.case_type || "Unspecified type")} · <span class="status-pill ${c.status}">${esc(c.status)}</span></div>
+      <div class="case-card-footer">
+        <span class="meta">${esc(c.case_type || "Unspecified type")} &nbsp;&middot;&nbsp; <span class="status-pill ${c.status}">${esc(c.status)}</span></span>
+        <button class="dash-delete-btn" data-id="${esc(c.id)}" title="Remove case" aria-label="Remove case">&#10005; Remove</button>
+      </div>
     </div>`);
-    card.addEventListener("click", () => openCase(c.id));
+
+    // Open case on card click (but not on the delete button)
+    card.addEventListener("click", (e) => {
+      if (!e.target.closest(".dash-delete-btn")) openCase(c.id);
+    });
+
+    // Delete button
+    card.querySelector(".dash-delete-btn").addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const confirmed = confirm(`Remove "${c.title}" permanently? This will also delete all its documents and analyses.`);
+      if (!confirmed) return;
+      const btn = e.currentTarget;
+      btn.disabled = true;
+      btn.textContent = "Deleting…";
+      try {
+        await api(`/cases/${c.id}`, { method: "DELETE" });
+        if (state.currentCaseId === c.id) {
+          state.currentCaseId = null;
+          state.currentCase = null;
+          state.view = "dashboard";
+        }
+        await render({ refetch: true });
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = "✕ Remove";
+        alert("Could not delete case: " + err.message);
+      }
+    });
+
     grid.appendChild(card);
   });
 }
 
 // -------------------------------------------------------------- corpus --
 async function renderCorpus() {
-  state.historicalCases = await getJSON("/historical-cases");
+  if (!state.historicalCases || !state.historicalCases.length) {
+    state.historicalCases = await getJSON("/historical-cases");
+  }
   main.innerHTML = `
     <div class="page-header">
       <div>
@@ -180,15 +282,18 @@ async function renderCorpus() {
 function renderNewCase() {
   main.innerHTML = `
     <div class="page-header"><div><h1>Register New Case</h1><div class="sub">Import from an online judgment URL or create manually</div></div></div>
-    
+    <div class="synthetic-note" style="background:#fff3cd; color:#856404; border-color:#ffeeba; margin-bottom:20px;">
+      <strong>Note:</strong> NyaAI is currently specialized for <strong>Land &amp; Property Cases</strong>.
+    </div>
+
     <div class="grid cols-2" style="gap:24px; max-width:1050px;">
       <div class="card">
         <h3 style="margin-top:0;">Option A: Import from URL (Indian Kanoon / Court)</h3>
-        <p style="font-size:13px; color:var(--muted); margin-bottom:14px;">Paste an Indian Kanoon or public court judgment URL. Nya AI will acquire the document, clean the text, extract its legal profile, and index it automatically.</p>
+        <p style="font-size:13px; color:var(--muted); margin-bottom:14px;">Paste an Indian Kanoon or public court land judgment URL. NyaAi will acquire the document, clean the text, extract its legal profile, and index it automatically.</p>
         <label>Judgment URL</label>
         <input type="url" id="f-url" placeholder="https://indiankanoon.org/doc/154031036/" />
         <label>Case Type</label>
-        <input type="text" id="f-url-type" placeholder="e.g. Criminal, Civil, Constitutional" value="Criminal" />
+        <input type="text" id="f-url-type" placeholder="e.g. Land Acquisition, Property Dispute" value="Land Acquisition" />
         <div class="form-actions" style="margin-top:16px;">
           <button class="btn primary" id="f-url-submit">Acquire &amp; Index Case</button>
         </div>
@@ -198,41 +303,52 @@ function renderNewCase() {
       <div class="card">
         <h3 style="margin-top:0;">Option B: Enter Case Details Manually</h3>
         <label>Case title</label>
-        <input type="text" id="f-title" placeholder="e.g. State v. A. Nair — Alleged Theft" />
+        <input type="text" id="f-title" placeholder="e.g. Ramesh Chandra v. State — Land Title Dispute" />
         <label>Case type</label>
-        <input type="text" id="f-type" placeholder="e.g. Criminal - Theft, Civil - Contract" />
+        <input type="text" id="f-type" placeholder="e.g. Land Dispute - Tenancy, Partition Suit" value="Land Dispute" />
         <label>Facts</label>
-        <textarea id="f-facts" placeholder="What happened, in your own words"></textarea>
+        <textarea id="f-facts" placeholder="Detail the land ownership, possession, or acquisition facts..."></textarea>
         <label>Charges / legal issues</label>
-        <textarea id="f-issues" placeholder="What is being alleged or disputed"></textarea>
+        <textarea id="f-issues" placeholder="Specify land title claims, compensation dispute, or boundary issues..."></textarea>
         <label>Arguments (one per line)</label>
-        <textarea id="f-arguments" placeholder="Prosecution: ...&#10;Defence: ..."></textarea>
+        <textarea id="f-arguments" placeholder="Petitioner: Claimant has valid registered sale deed since 1985...&#10;Respondent: Land acquired under Land Acquisition Act..."></textarea>
         <label>Evidence on hand (one item per line)</label>
-        <textarea id="f-evidence" placeholder="e.g. CCTV footage, signed statement"></textarea>
+        <textarea id="f-evidence" placeholder="e.g. Registered Sale Deed, Khatian records, Revenue receipt"></textarea>
         <div class="form-actions">
           <button class="btn primary" id="f-submit">Create Case</button>
           <button class="btn ghost" id="f-cancel">Cancel</button>
         </div>
+        <div id="manual-status" style="margin-top:10px;"></div>
       </div>
     </div>
   `;
 
-  document.getElementById("f-cancel").addEventListener("click", () => { state.view = "dashboard"; render(); });
+  document.getElementById("f-cancel").addEventListener("click", () => {
+    state.view = "dashboard";
+    render({ refetch: false });
+  });
   
   // URL Import handler
   document.getElementById("f-url-submit").addEventListener("click", async () => {
     const url = document.getElementById("f-url").value.trim();
     if (!url) { alert("Please enter a valid judgment URL."); return; }
     const status = document.getElementById("url-status");
-    status.innerHTML = `<div class="loading-line">Acquiring document, extracting legal profile & indexing…</div>`;
+    status.innerHTML = `<div class="loading-line">Acquiring document, extracting legal profile &amp; indexing…</div>`;
     try {
       const c = await postJSON("/cases/from-url", {
         url,
-        case_type: document.getElementById("f-url-type").value.trim() || "General",
+        case_type: document.getElementById("f-url-type").value.trim() || "Land Dispute",
       });
+      status.innerHTML = "";
       await openCase(c.id);
     } catch (err) {
-      status.innerHTML = `<div style="color:var(--danger); font-size:13px;">Acquisition failed: ${esc(err.message)}</div>`;
+      status.innerHTML = "";
+      const msg = err.message || "Unknown error";
+      if (msg.toLowerCase().includes("land") || msg.toLowerCase().includes("designed for")) {
+        showErrorModal(msg);
+      } else {
+        status.innerHTML = `<div style="color:var(--danger); font-size:13.5px; background:#fce8e6; padding:10px 14px; border-radius:4px; margin-top:8px;">${esc(msg)}</div>`;
+      }
     }
   });
 
@@ -240,16 +356,29 @@ function renderNewCase() {
   document.getElementById("f-submit").addEventListener("click", async () => {
     const title = document.getElementById("f-title").value.trim();
     if (!title) { alert("Please give the case a title."); return; }
+    const status = document.getElementById("manual-status");
+    status.innerHTML = `<div class="loading-line">Creating case…</div>`;
     const payload = {
       title,
-      case_type: document.getElementById("f-type").value.trim(),
+      case_type: document.getElementById("f-type").value.trim() || "Land Dispute",
       facts: document.getElementById("f-facts").value.trim(),
       charges_issues: document.getElementById("f-issues").value.trim(),
       arguments_text: document.getElementById("f-arguments").value.trim(),
       evidence_text: document.getElementById("f-evidence").value.trim(),
     };
-    const c = await postJSON("/cases", payload);
-    await openCase(c.id);
+    try {
+      const c = await postJSON("/cases", payload);
+      status.innerHTML = "";
+      await openCase(c.id);
+    } catch (err) {
+      status.innerHTML = "";
+      const msg = err.message || "Unknown error";
+      if (msg.toLowerCase().includes("land") || msg.toLowerCase().includes("designed for")) {
+        showErrorModal(msg);
+      } else {
+        status.innerHTML = `<div style="color:var(--danger); font-size:13.5px; background:#fce8e6; padding:10px 14px; border-radius:4px; margin-top:8px;">${esc(msg)}</div>`;
+      }
+    }
   });
 }
 
@@ -260,7 +389,7 @@ async function openCase(caseId) {
   state.currentTab = "overview";
   state.analyses = {};
   await loadCaseData();
-  render();
+  render({ refetch: false });
 }
 
 async function loadCaseData() {
@@ -353,9 +482,18 @@ function renderTabContent() {
 }
 
 async function renderGraphTab(holder) {
-  holder.innerHTML = `<div class="loading-line">Building precedent citation graph…</div>`;
+  let data = state.citationGraphs[state.currentCaseId];
+  if (!data) {
+    holder.innerHTML = `<div class="loading-line">Building precedent citation graph…</div>`;
+    try {
+      data = await getJSON(`/cases/${state.currentCaseId}/citation-graph`);
+      state.citationGraphs[state.currentCaseId] = data;
+    } catch (e) {
+      holder.innerHTML = `<div class="empty-state"><div class="empty-title">Couldn't load citation graph</div>${esc(e.message)}</div>`;
+      return;
+    }
+  }
   try {
-    const data = await getJSON(`/cases/${state.currentCaseId}/citation-graph`);
     const nodes = data.nodes || [];
     const links = data.links || [];
     const metrics = data.metrics || {};
@@ -424,14 +562,57 @@ async function renderGraphTab(holder) {
 
 function renderOverviewTab(holder) {
   const c = state.currentCase;
+  const factsText = c.facts || "";
+  const issuesText = c.charges_issues || c.issues || "";
+
+  // Structured arguments rendering
+  let argsHtml = "";
+  if (typeof c.arguments === "object" && !Array.isArray(c.arguments) && Object.keys(c.arguments || {}).length) {
+    const pet = c.arguments.petitioner || [];
+    const resp = c.arguments.respondent || [];
+    const general = c.arguments.general || [];
+    let items = [];
+    if (pet.length) {
+      items.push(`<div style="margin-bottom:8px;"><b style="color:var(--primary);">Petitioner / Appellant:</b><ul style="margin:4px 0 8px 18px; padding:0;">${pet.map(p => `<li>${esc(p)}</li>`).join("")}</ul></div>`);
+    }
+    if (resp.length) {
+      items.push(`<div style="margin-bottom:8px;"><b style="color:#b06000;">Respondent / State:</b><ul style="margin:4px 0 8px 18px; padding:0;">${resp.map(r => `<li>${esc(r)}</li>`).join("")}</ul></div>`);
+    }
+    if (general.length) {
+      items.push(`<ul style="margin:4px 0 8px 18px; padding:0;">${general.map(g => `<li>${esc(g)}</li>`).join("")}</ul>`);
+    }
+    argsHtml = items.join("") || "<span style='color:var(--muted)'>Not provided</span>";
+  } else if (c.arguments_text) {
+    argsHtml = nl2br(c.arguments_text);
+  } else {
+    argsHtml = "<span style='color:var(--muted)'>Not provided</span>";
+  }
+
+  // Structured evidence rendering
+  let eviHtml = "";
+  if (Array.isArray(c.evidence) && c.evidence.length) {
+    eviHtml = `
+      <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        ${c.evidence.map(e => {
+          const desc = typeof e === "object" ? (e.description || e.name || JSON.stringify(e)) : String(e);
+          return `<span style="background:var(--card-bg, #f4f5f7); border:1px solid var(--border, #e2e4e8); padding:4px 9px; border-radius:14px; font-size:12px; font-weight:500;">📄 ${esc(desc)}</span>`;
+        }).join("")}
+      </div>
+    `;
+  } else if (c.evidence_text) {
+    eviHtml = nl2br(c.evidence_text);
+  } else {
+    eviHtml = "<span style='color:var(--muted)'>Not provided</span>";
+  }
+
   holder.innerHTML = `
     <div class="grid cols-2">
-      <div class="card"><h3>Facts</h3><div>${nl2br(c.facts) || "<span style='color:var(--muted)'>Not provided</span>"}</div></div>
-      <div class="card"><h3>Charges / Issues</h3><div>${nl2br(c.charges_issues) || "<span style='color:var(--muted)'>Not provided</span>"}</div></div>
-      <div class="card"><h3>Arguments</h3><div>${nl2br(c.arguments_text) || "<span style='color:var(--muted)'>Not provided</span>"}</div></div>
-      <div class="card"><h3>Evidence on hand</h3><div>${nl2br(c.evidence_text) || "<span style='color:var(--muted)'>Not provided</span>"}</div></div>
+      <div class="card"><h3>Facts</h3><div style="max-height:360px; overflow-y:auto; line-height:1.55;">${nl2br(factsText) || "<span style='color:var(--muted)'>Not provided</span>"}</div></div>
+      <div class="card"><h3>Charges / Issues</h3><div style="line-height:1.55;">${nl2br(issuesText) || "<span style='color:var(--muted)'>Not provided</span>"}</div></div>
+      <div class="card"><h3>Arguments</h3><div style="max-height:360px; overflow-y:auto; line-height:1.5;">${argsHtml}</div></div>
+      <div class="card"><h3>Evidence on hand</h3><div style="max-height:360px; overflow-y:auto; line-height:1.5;">${eviHtml}</div></div>
     </div>
-    <p class="disclaimer">Nya(AI) is a decision-support tool for legal professionals. It does not determine guilt, innocence, or sentencing, and every generated claim should be checked against the linked source before relying on it.</p>
+    <p class="disclaimer">NyaAi is a decision-support tool for legal professionals. It does not determine guilt, innocence, or sentencing, and every generated claim should be checked against the linked source before relying on it.</p>
   `;
 }
 
@@ -532,9 +713,25 @@ function renderSimilarCases(holder, result) {
         ${breakdownHtml}
         <div class="rc-body">${esc(sc.why_relevant)}</div>
         <div style="margin-top:8px; font-style:italic; color:var(--muted); font-size:12.6px;">"${esc((sc.matching_excerpt || "").slice(0, 220))}…"</div>
-        <div style="margin-top:8px;">${refChips([sc.ref_key])}</div>
+        <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+          <div>${refChips([sc.ref_key])}</div>
+          <button class="btn ghost small btn-compare-sc" data-casename="${esc(sc.case_name)}">⚖️ Compare with this case</button>
+        </div>
       </div>
     `));
+  });
+
+  holder.querySelectorAll(".btn-compare-sc").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const caseName = btn.dataset.casename;
+      const match = (state.historicalCases || []).find(h => h.case_name === caseName);
+      if (match) {
+        state.compareTargetId = match.id;
+      }
+      state.currentTab = "compare";
+      renderTabContent();
+      syncTabHighlight();
+    });
   });
 }
 
@@ -652,23 +849,70 @@ function renderBrief(holder, result) {
 
 // -------------------------------------------------------------- compare --
 async function renderCompareTab(holder) {
-  if (!state.historicalCases.length) state.historicalCases = await getJSON("/historical-cases");
+  if (!state.historicalCases.length) {
+    holder.innerHTML = `<div class="loading-line">Loading precedent cases for comparison…</div>`;
+    try {
+      state.historicalCases = await getJSON("/historical-cases");
+    } catch (e) {
+      holder.innerHTML = `<div class="empty-state"><div class="empty-title">Failed to load precedent cases</div>${esc(e.message)}</div>`;
+      return;
+    }
+  }
+
+  // Check if we have similar cases from previous analysis to suggest as top picks
+  const similarList = (state.analyses.similar_cases?.similar_cases || []);
+  let topOptionsHtml = "";
+  if (similarList.length) {
+    topOptionsHtml = `
+      <optgroup label="⭐ Top Similar Precedents (from Analysis)">
+        ${similarList.map(sc => {
+          const match = state.historicalCases.find(hc => hc.case_name === sc.case_name);
+          const val = match ? match.id : "";
+          return val ? `<option value="${val}">★ ${esc(sc.case_name)} (${esc(sc.court || "")} ${sc.year || ""})</option>` : "";
+        }).filter(Boolean).join("")}
+      </optgroup>
+    `;
+  }
+
   holder.innerHTML = `
     <div class="card" style="margin-bottom:20px;">
-      <label>Choose a historical case to compare against</label>
-      <select id="compare-select">
-        <option value="">Select a case…</option>
-        ${state.historicalCases.map(hc => `<option value="${hc.id}">${esc(hc.case_name)}</option>`).join("")}
+      <h3 style="margin-top:0; margin-bottom:8px;">Precedent Case Comparison</h3>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">Select any historical precedent or relevant case from the library to perform an automated side-by-side comparative analysis of facts, legal provisions, issues, and applicability.</p>
+      <label for="compare-select" style="font-weight:600;">Choose a precedent to compare against:</label>
+      <select id="compare-select" style="width:100%; padding:9px 12px; margin-top:6px; border:1px solid var(--border); border-radius:6px; font-size:13.5px; background:var(--card-bg);">
+        <option value="">Select a case (${state.historicalCases.length} available)…</option>
+        ${topOptionsHtml}
+        <optgroup label="All Precedent Cases (${state.historicalCases.length})">
+          ${state.historicalCases.map(hc => `<option value="${hc.id}">${esc(hc.case_name)}${hc.year ? ` (${hc.year})` : ""} — ${esc(hc.court || "Court")}</option>`).join("")}
+        </optgroup>
       </select>
-      <div class="form-actions"><button class="btn primary" id="compare-run">Compare</button></div>
+      <div class="form-actions" style="margin-top:14px;">
+        <button class="btn primary" id="compare-run">Compare Precedent</button>
+      </div>
     </div>
     <div id="compare-result"></div>
   `;
-  document.getElementById("compare-run").addEventListener("click", async () => {
-    const hcId = document.getElementById("compare-select").value;
-    if (!hcId) return;
+
+  const btnRun = document.getElementById("compare-run");
+  const selCase = document.getElementById("compare-select");
+
+  if (state.compareTargetId) {
+    selCase.value = state.compareTargetId;
+    state.compareTargetId = null;
+    // Auto-trigger comparison if requested from a card
+    setTimeout(() => btnRun.click(), 50);
+  }
+
+  btnRun.addEventListener("click", async () => {
+    const hcId = selCase.value;
+    if (!hcId) {
+      alert("Please select a precedent case from the dropdown first.");
+      return;
+    }
     const resultHolder = document.getElementById("compare-result");
-    resultHolder.innerHTML = `<div class="loading-line">Comparing…</div>`;
+    btnRun.disabled = true;
+    btnRun.textContent = "Analyzing & Comparing…";
+    resultHolder.innerHTML = `<div class="loading-line">Generating detailed side-by-side comparison…</div>`;
     try {
       const result = await postJSON(`/cases/${state.currentCaseId}/compare`, { historical_case_id: hcId });
       setCitationsMap(result.citations);
@@ -676,7 +920,10 @@ async function renderCompareTab(holder) {
       renderComparisonResult(resultHolder, result);
       attachRefChipHandlers(resultHolder);
     } catch (e) {
-      resultHolder.innerHTML = `<div class="empty-state">${esc(e.message)}</div>`;
+      resultHolder.innerHTML = `<div class="empty-state"><div class="empty-title">Comparison failed</div>${esc(e.message)}</div>`;
+    } finally {
+      btnRun.disabled = false;
+      btnRun.textContent = "Compare Precedent";
     }
   });
 }
@@ -718,8 +965,11 @@ function renderComparisonResult(holder, result) {
 }
 
 // ------------------------------------------------------------- router ---
-async function render() {
-  await refreshSidebar();
+async function render(opts = { refetch: true }) {
+  if (opts.refetch) {
+    await fetchCases();
+  }
+  renderSidebar();
   if (state.view === "dashboard") return renderDashboard();
   if (state.view === "corpus") return renderCorpus();
   if (state.view === "search") return renderSearch();

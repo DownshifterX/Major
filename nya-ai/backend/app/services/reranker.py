@@ -376,13 +376,17 @@ def rerank_candidates(
     target_issues_tokens = _tokenize_text(query_case.issues or "")
 
     reranked: List[RerankedCandidate] = []
+    cand_hc_ids = list({cand.chunk.historical_case_id for cand in candidates if cand.chunk.historical_case_id})
     case_cache: Dict[str, Optional[models.HistoricalCase]] = {}
+    if cand_hc_ids:
+        for hc in db.query(models.HistoricalCase).filter(models.HistoricalCase.id.in_(cand_hc_ids)).all():
+            case_cache[hc.id] = hc
 
     for cand in candidates:
         hc_id = cand.chunk.historical_case_id
-        if hc_id not in case_cache:
-            case_cache[hc_id] = db.query(models.HistoricalCase).get(hc_id)
-        hc = case_cache[hc_id]
+        hc = case_cache.get(hc_id)
+        if not hc:
+            continue
 
         # Apply Hard Legal Eligibility Constraint
         if not is_case_eligible(hc, excluded_case_ids=excluded_case_ids):

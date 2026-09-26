@@ -121,16 +121,16 @@ def test_health(client):
 
 def test_create_case(client):
     r = client.post("/cases", json={
-        "title": "Criminal Case Test",
-        "case_type": "Criminal",
-        "facts": "Accused found with stolen goods.",
-        "charges_issues": "Section 379 IPC theft",
-        "arguments_text": "Prosecution: caught red-handed\nDefence: alibi",
-        "evidence_text": "CCTV footage\nPolice statement",
+        "title": "Land Dispute Case Test",
+        "case_type": "Land Dispute",
+        "facts": "Claimant disputes land ownership and possession under revenue records.",
+        "charges_issues": "Land acquisition compensation and title boundary dispute",
+        "arguments_text": "Petitioner: valid registered sale deed since 1985\nRespondent: land acquired under Land Acquisition Act",
+        "evidence_text": "Registered Sale Deed\nRevenue Khatian",
     })
     assert r.status_code == 200
     data = r.json()
-    assert data["title"] == "Criminal Case Test"
+    assert data["title"] == "Land Dispute Case Test"
     assert data["status"] == "draft"
 
 
@@ -181,11 +181,11 @@ def test_dashboard_stats(client):
 def test_full_analysis_pipeline(client, seeded_corpus):
     cid = client.post("/cases", json={
         "title": "Full Analysis Test",
-        "case_type": "Criminal",
-        "facts": "Murder under Section 302 IPC with eyewitness evidence.",
-        "charges_issues": "Section 302 IPC murder",
-        "arguments_text": "Prosecution: evidence conclusive\nDefence: alibi",
-        "evidence_text": "Eyewitness\nForensic report",
+        "case_type": "Land Dispute",
+        "facts": "Land acquisition dispute under Land Acquisition Act.",
+        "charges_issues": "Land acquisition compensation",
+        "arguments_text": "Petitioner: evidence conclusive\nDefence: alibi",
+        "evidence_text": "Registered Sale Deed\nLand revenue receipt",
     }).json()["id"]
 
     r = client.post(f"/cases/{cid}/analyze", json={})
@@ -197,9 +197,10 @@ def test_full_analysis_pipeline(client, seeded_corpus):
 
 def test_similar_cases_endpoint(client, seeded_corpus):
     cid = client.post("/cases", json={
-        "title": "Bail Case",
-        "facts": "Section 438 CrPC anticipatory bail application",
-        "charges_issues": "Section 438 CrPC",
+        "title": "Land Title Case",
+        "case_type": "Land Dispute",
+        "facts": "Tenancy and possession dispute over agricultural land plot",
+        "charges_issues": "Land acquisition Act Section 4",
     }).json()["id"]
     r = client.get(f"/cases/{cid}/similar-cases")
     assert r.status_code == 200
@@ -207,7 +208,7 @@ def test_similar_cases_endpoint(client, seeded_corpus):
 
 
 def test_legal_provisions_endpoint(client, seeded_corpus):
-    cid = client.post("/cases", json={"title": "Provisions Test", "facts": "Section 302 IPC"}).json()["id"]
+    cid = client.post("/cases", json={"title": "Provisions Test Land Case", "case_type": "Land Dispute", "facts": "Land Acquisition Act Section 4 compensation"}).json()["id"]
     r = client.get(f"/cases/{cid}/legal-provisions")
     assert r.status_code == 200
     assert "legal_provisions" in r.json()
@@ -253,8 +254,9 @@ def test_brief_endpoint(client, seeded_corpus):
 def test_compare_endpoint(client, seeded_corpus):
     hc1, _ = seeded_corpus
     cid = client.post("/cases", json={
-        "title": "Compare Source",
-        "facts": "Murder eyewitness Section 302",
+        "title": "Compare Source Land Case",
+        "case_type": "Land Dispute",
+        "facts": "Land title dispute registered deed Section 4 Land Acquisition Act",
     }).json()["id"]
     r = client.post(f"/cases/{cid}/compare", json={"historical_case_id": hc1.id})
     assert r.status_code == 200
@@ -265,7 +267,7 @@ def test_compare_endpoint(client, seeded_corpus):
 # ===== Citation Graph =====
 
 def test_citation_graph(client, seeded_corpus):
-    cid = client.post("/cases", json={"title": "Graph Test"}).json()["id"]
+    cid = client.post("/cases", json={"title": "Graph Test Land Case", "case_type": "Land Dispute"}).json()["id"]
     r = client.get(f"/cases/{cid}/citation-graph")
     assert r.status_code == 200
     data = r.json()
@@ -277,7 +279,7 @@ def test_citation_graph(client, seeded_corpus):
 # ===== Search =====
 
 def test_api_search_with_corpus(client, seeded_corpus):
-    r = client.get("/api/search?q=Section+302+IPC+murder&limit=5")
+    r = client.get("/api/search?q=Land+Acquisition+Act+compensation&limit=5")
     assert r.status_code == 200
     results = r.json()
     assert isinstance(results, list)
@@ -297,9 +299,10 @@ def test_api_search_empty_corpus(client):
 
 def test_reranked_precedents_endpoint(client, seeded_corpus):
     cid = client.post("/cases", json={
-        "title": "Rerank Test",
-        "facts": "Murder Section 302 IPC conviction eyewitness",
-        "issues": "Section 302 IPC murder",
+        "title": "Rerank Test Land Case",
+        "case_type": "Land Dispute",
+        "facts": "Land Acquisition Act section 4 compensation possession dispute",
+        "issues": "Land acquisition compensation",
     }).json()["id"]
     r = client.get(f"/api/cases/{cid}/reranked-precedents?top_k=5")
     assert r.status_code == 200

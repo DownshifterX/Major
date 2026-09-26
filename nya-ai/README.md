@@ -1,4 +1,4 @@
-# ⚖️ Nya(AI) — Justice. Reimagined.
+# ⚖️ NyaAi — Justice. Reimagined.
 
 > **Next-Generation AI Legal Intelligence, Case Analysis & Precedent Research Platform**  
 > *Grounded in Real Indian Supreme Court & High Court Jurisprudence with Zero Hallucination Citation Discipline.*
@@ -31,7 +31,7 @@ python run.py --reload                    # Hot-reloading mode for active develo
 
 ## 🏛️ Platform Overview
 
-**Nya(AI)** is a decision-support and legal intelligence platform purpose-built for advocates, researchers, judicial clerks, and legal scholars. It pairs hybrid semantic + lexical search with structural legal entity extraction and a multi-signal reranking engine.
+**NyaAi** is a decision-support and legal intelligence platform purpose-built for advocates, researchers, judicial clerks, and legal scholars. It pairs hybrid semantic + lexical search with structural legal entity extraction and a multi-signal reranking engine.
 
 ```
        ┌────────────────────────────────────────────────────────┐
@@ -187,7 +187,7 @@ Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)** in your browser.
 ## 🧪 Testing & Evaluation Benchmark
 
 ### 1. Run Automated Test Suites
-Nya AI comes with 28 automated test cases covering case workflows, document indexing, SQLite concurrency, and retrieval safety:
+NyaAi comes with 28 automated test cases covering case workflows, document indexing, SQLite concurrency, and retrieval safety:
 
 ```bash
 cd backend
@@ -288,13 +288,13 @@ GET    /historical-cases/{id}          # View precedent judgment details
 ## 🔒 Ethical AI & Citation Discipline
 
 > [!IMPORTANT]
-> **Nya(AI) adheres strictly to legal ethics:**
+> **NyaAi adheres strictly to legal ethics:**
 > - ❌ **No Hallucinations**: Analysis never generates citations, case names, or statutory sections that do not exist in the source corpus.
 > - 🔍 **Clickable Provenance**: Every output section references an exact source chunk `[S1]`, `[S2]`, allowing immediate human verification.
-> - ⚖️ **Decision-Support Only**: Nya(AI) does not replace the counsel of qualified legal professionals or the judicial discretion of the courts.
+> - ⚖️ **Decision-Support Only**: NyaAi does not replace the counsel of qualified legal professionals or the judicial discretion of the courts.
 
 ---
 
 ## 📄 License & Attribution
-Developed as part of the **Nya AI** Project.  
+Developed as part of the **NyaAi** Project.  
 Judicial text extracts and citations are sourced from open Indian public domain court records.

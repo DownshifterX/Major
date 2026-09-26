@@ -1,7 +1,8 @@
 __pycache__/
 *.pyc
 .venv/
-backend/data/nya.db
+backend/data/nya.db*
+backend/data/corpus_cache.pkl
 backend/data/uploads/*
 .env
 node_modules/

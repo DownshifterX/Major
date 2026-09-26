@@ -17,6 +17,15 @@ BOILERPLATE_PATTERNS = [
     r"Print this document\b.*",
     r"Powered by:?\s*National Informatics Centre\b.*",
     r"Disclaimer:?\s*Information and inputs.*",
+    r"^\s*\[\s*Cites\s*\d*\s*,\s*Cited by\s*\d*\s*\]\s*$",
+    r"^\s*\[\s*Cites\s*$",
+    r"^\s*,\s*Cited by\s*$",
+    r"^\s*Signature Not Verified\s*$",
+    r"^\s*Digitally signed by\b.*",
+    r"^\s*Date:\s*\d{4}\.\d{2}\.\d{2}.*",
+    r"^\s*Reason:\s*$",
+    r".*Page\s+\d+\s+of\s+\d+\s*$",
+    r"^\s*\d+\s*/\s*\d+\s*$",
 ]
 
 COMPILED_BOILERPLATE = [re.compile(p, re.IGNORECASE) for p in BOILERPLATE_PATTERNS]
@@ -31,6 +40,8 @@ def clean_legal_text(raw_text: str) -> str:
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = text.replace("\xa0", " ").replace("\u200b", "")
     text = re.sub(r"<[^>]+>", " ", text)
+    # Strip multi-line Indian Kanoon [Cites ..., Cited by ...] header block
+    text = re.sub(r"^\s*\[\s*Cites[\s\S]*?\]\s*", "", text, flags=re.IGNORECASE)
 
     cleaned_lines = []
     for line in text.split("\n"):

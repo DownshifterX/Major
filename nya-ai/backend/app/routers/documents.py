@@ -38,6 +38,13 @@ async def upload_document(
     if not text.strip():
         raise HTTPException(422, "No extractable text found in this document")
 
+    from ..services.legal_structure import is_land_case
+    if not is_land_case(text=text, case_type=case.case_type or ""):
+        raise HTTPException(
+            400,
+            "NyaAi is currently designed for land cases. You can expect future updates to serve other case types."
+        )
+
     document = models.Document(
         case_id=case_id,
         filename=file.filename,

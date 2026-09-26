@@ -74,8 +74,11 @@ class CaseOut(BaseModel):
     provisions: Optional[List[Any]] = None
     facts: Optional[str] = ""
     issues: Optional[str] = ""
+    charges_issues: Optional[str] = ""   # alias for issues (model property)
     arguments: Optional[Any] = {}
+    arguments_text: Optional[str] = ""   # flattened text of arguments (model property)
     evidence: Optional[Any] = []
+    evidence_text: Optional[str] = ""    # flattened text of evidence (model property)
     procedural_history: Optional[str] = ""
     judgment: Optional[str] = ""
     timeline: Optional[List[Dict[str, Any]]] = []

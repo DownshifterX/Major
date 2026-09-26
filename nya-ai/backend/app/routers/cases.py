@@ -9,6 +9,14 @@ router = APIRouter(prefix="/cases", tags=["cases"])
 
 @router.post("", response_model=schemas.CaseOut)
 def create_case(payload: schemas.CaseCreate, db: Session = Depends(get_db)):
+    from ..services.legal_structure import is_land_case
+    full_text = f"{payload.title} {payload.facts or ''} {payload.issues or payload.charges_issues or ''}"
+    if not is_land_case(text=full_text, case_type=payload.case_type or ""):
+        raise HTTPException(
+            status_code=400,
+            detail="NyaAi is currently designed for land cases. You can expect future updates to serve other case types."
+        )
+
     case = models.Case(
         title=payload.title,
         case_number=payload.case_number,
@@ -44,7 +52,7 @@ def create_case(payload: schemas.CaseCreate, db: Session = Depends(get_db)):
 def import_case_from_url(payload: schemas.UrlImportRequest, db: Session = Depends(get_db)):
     """Acquires a case judgment from URL (e.g. Indian Kanoon) and automatically extracts its legal profile."""
     from ..services.document_acquisition import acquire_document_from_url
-    from ..services.legal_structure import extract_legal_sections_structure
+    from ..services.legal_structure import extract_legal_sections_structure, is_land_case
     from ..services.indexing import index_document
 
     result = acquire_document_from_url(payload.url)
@@ -52,13 +60,32 @@ def import_case_from_url(payload: schemas.UrlImportRequest, db: Session = Depend
         raise HTTPException(400, f"Failed to acquire document from URL: {result.get('error')}")
 
     clean_text = result["clean_text"]
-    title = result["title"] or "Imported Case"
-    structured = extract_legal_sections_structure(clean_text)
+    title = result.get("title") or "Imported Case"
+    metadata = result.get("metadata", {})
+    kanoon_struct = result.get("kanoon_structure", {})
+
+    if not is_land_case(text=clean_text, case_type=payload.case_type or ""):
+        raise HTTPException(
+            status_code=400,
+            detail="NyaAi is currently designed for land cases. You can expect future updates to serve other case types."
+        )
+    structured = extract_legal_sections_structure(clean_text, kanoon_structure=kanoon_struct)
+
+    court_detected = metadata.get("court")
+    if not court_detected:
+        if "supreme court" in clean_text.lower():
+            court_detected = "Supreme Court of India"
+        elif "high court" in clean_text.lower():
+            court_detected = "High Court"
+        else:
+            court_detected = "District Court"
 
     case = models.Case(
         title=title,
-        court="Supreme Court of India" if "supreme court" in clean_text.lower() else "High Court",
-        case_type=payload.case_type or "General",
+        court=court_detected,
+        judge=metadata.get("judge") or metadata.get("bench"),
+        case_type=payload.case_type or "Land Dispute",
+        legal_domain="Land & Property Law",
         facts=structured["facts"],
         issues="\n".join(structured["legal_issues"]) if isinstance(structured["legal_issues"], list) else str(structured["legal_issues"]),
         arguments={
@@ -147,12 +174,25 @@ def dashboard_stats(case_id: str, db: Session = Depends(get_db)):
 
 @router.get("/{case_id}/citation-graph")
 def case_citation_graph(case_id: str, db: Session = Depends(get_db)):
-    """Returns the precedent citation graph for the case."""
+    """Returns the precedent citation graph tailored to the given case."""
     from ..services.citation_graph import get_citation_graph
+    from ..services.retrieval import retrieve_historical_chunks
     graph = get_citation_graph(db)
     
-    # If this is a live user case, get graph for its top similar historical case
-    top_hist = db.query(models.HistoricalCase).first()
-    target_id = top_hist.id if top_hist else case_id
+    case = db.query(models.Case).get(case_id)
+    target_id = None
+    if case:
+        query_text = " ".join(filter(None, [case.facts or "", case.issues or "", case.case_type or ""]))
+        if query_text.strip():
+            retrieved = retrieve_historical_chunks(db, query_text, top_k=5)
+            for r in retrieved:
+                if r.chunk.historical_case_id and r.chunk.historical_case_id in graph.graph:
+                    target_id = r.chunk.historical_case_id
+                    break
+
+    if not target_id:
+        top_hist = db.query(models.HistoricalCase).first()
+        target_id = top_hist.id if top_hist else case_id
+
     subgraph = graph.get_case_citation_subgraph(target_id, depth=2)
     return subgraph

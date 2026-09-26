@@ -1,6 +1,6 @@
-"""Nya AI — One-Click Unified Application Launcher.
+"""NyaAi — One-Click Unified Application Launcher.
 
-Runs the complete end-to-end Nya AI application:
+Runs the complete end-to-end NyaAi application:
 - Verifies python environment and core dependencies
 - Ensures the data directory and SQLite database schema are initialized
 - Verifies legal precedent corpus presence
@@ -41,7 +41,7 @@ def check_port_in_use(host: str, port: int) -> bool:
 def print_banner(host: str, port: int):
     url = f"http://{host}:{port}"
     print("=" * 68)
-    print("      NYA(AI) — Justice. Reimagined.      ")
+    print("      NYAAI — Justice. Reimagined.      ")
     print("   AI-Assisted Legal Case Analysis & Decision-Support Platform   ")
     print("=" * 68)
     print(f" [*] Application URL:    {url}")
@@ -110,7 +110,7 @@ def launch_browser(url: str, delay: float = 1.2):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Nya AI Unified Application Launcher")
+    parser = argparse.ArgumentParser(description="NyaAi Unified Application Launcher")
     parser.add_argument("--host", default="127.0.0.1", help="Host interface (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=8000, help="Port to listen on (default: 8000)")
     parser.add_argument("--reload", action="store_true", help="Enable auto-reload for development")

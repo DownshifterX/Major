@@ -17,10 +17,31 @@ from sqlalchemy.orm import Session
 
 Base.metadata.create_all(bind=engine)
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Pre-warm corpus cache and citation graph so user requests respond instantly
+    try:
+        from .database import SessionLocal
+        from .services.retrieval import _ensure_corpus_cache
+        from .services.citation_graph import get_citation_graph
+        db = SessionLocal()
+        try:
+            _ensure_corpus_cache(db)
+            get_citation_graph(db)
+        finally:
+            db.close()
+    except Exception as exc:
+        import warnings
+        warnings.warn(f"Corpus warmup notice: {exc}")
+    yield
+
 app = FastAPI(
-    title="Nya(AI) — Justice. Reimagined.",
+    title="NyaAi — Justice. Reimagined.",
     description="AI-assisted legal case analysis and decision-support API (PoC).",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 origins = os.getenv("CORS_ORIGINS", "*").split(",")
@@ -54,7 +75,7 @@ except Exception as _eval_err:
 def health():
     return {
         "status": "ok",
-        "product": "Nya(AI)",
+        "product": "NyaAi",
         "tagline": "Justice. Reimagined.",
         "version": "2.0",
         "llm_provider": os.getenv("LLM_PROVIDER", "mock"),

@@ -205,19 +205,32 @@ class MockLLMProvider(LLMProvider):
     def _evidence_gaps(self, ctx: Dict[str, Any]) -> Dict[str, Any]:
         evidence_text = ctx.get("evidence_text", "") or ""
         present = [l.strip("-• \t") for l in evidence_text.splitlines() if l.strip()]
+        
+        # Domain-appropriate evidence standards for land & civil property disputes
         commonly_expected = [
-            "forensic/medical report", "eyewitness statement", "CCTV or digital evidence",
-            "chain-of-custody record", "expert opinion", "documentary/financial record",
+            ("registered sale or title deed", "registered sale deed / title conveyance showing uninterrupted chain of title"),
+            ("khatian or revenue mutation entry", "khatian / mutation register (Jamabandi/Khatauni) verifying fiscal possession"),
+            ("revenue receipt or rent challan", "rent / revenue payment receipts (Malgoozari challans) corroborating possession"),
+            ("certified copy of court decree or order", "certified copies of previous revenue court orders or partition decrees"),
+            ("demarcation report or survey map", "official demarcation report, field book, or trace map (Aks Shajra)"),
+            ("witness deposition", "depositions of attesting witnesses or village revenue officials (Patwari/Tehsildar)"),
         ]
-        present_low = " ".join(present).lower()
-        potential_gaps = [
-            f"A {item} may be relevant to verify claims in this case, but was not found among the uploaded documents."
-            for item in commonly_expected
-            if item.split("/")[0] not in present_low
-        ]
+        
+        all_sources_text = " ".join([s.get("text", "") for s in ctx.get("sources", [])]).lower()
+        combined_text = (evidence_text + " " + all_sources_text).lower()
+        
+        potential_gaps = []
+        for key, description in commonly_expected:
+            # Check if any key token is present
+            keywords = key.split()
+            if not any(kw in combined_text for kw in keywords if len(kw) > 3):
+                potential_gaps.append(
+                    f"A {description} is typically crucial to establish title or continuous possession, but was not identified in the uploaded documents."
+                )
+
         return {
-            "evidence_present": present or ["No structured evidence entries provided."],
-            "potential_evidence_to_verify": potential_gaps,
+            "evidence_present": present or ["No structured evidence entries registered yet. Upload or list deeds, khatian, and witness statements."],
+            "potential_evidence_to_verify": potential_gaps or ["All primary documentary and revenue categories appear represented."],
         }
 
     def _contradictions(self, ctx: Dict[str, Any]) -> Dict[str, Any]:

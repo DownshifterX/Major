@@ -69,12 +69,13 @@ def _save_analysis(db: Session, case_id: str, analysis_type: str, content: dict,
 
 def _retrieved_to_sources(db: Session, retrieved) -> List[Dict[str, Any]]:
     sources = []
+    hc_ids = list({r.chunk.historical_case_id for r in retrieved if r.chunk.historical_case_id})
     hc_cache: Dict[str, models.HistoricalCase] = {}
+    if hc_ids:
+        for hc in db.query(models.HistoricalCase).filter(models.HistoricalCase.id.in_(hc_ids)).all():
+            hc_cache[hc.id] = hc
     for i, r in enumerate(retrieved, start=1):
-        hc_id = r.chunk.historical_case_id
-        if hc_id not in hc_cache:
-            hc_cache[hc_id] = db.query(models.HistoricalCase).get(hc_id)
-        hc = hc_cache[hc_id]
+        hc = hc_cache.get(r.chunk.historical_case_id)
         sources.append(_make_source_entry(f"S{i}", r.chunk, hc.case_name if hc else None, r.hybrid_score))
     return sources
 
@@ -95,9 +96,16 @@ def run_similar_cases(db: Session, case: models.Case) -> Dict[str, Any]:
     sources = _retrieved_to_sources(db, retrieved)
     ref_by_chunk = {s["chunk_id"]: s["ref_key"] for s in sources}
 
+    # Batch query historical cases for all groups
+    all_hc_ids = [hc_id for hc_id in groups.keys() if hc_id]
+    hcs_by_id = {}
+    if all_hc_ids:
+        for hc in db.query(models.HistoricalCase).filter(models.HistoricalCase.id.in_(all_hc_ids)).all():
+            hcs_by_id[hc.id] = hc
+
     retrieved_groups = []
     for hc_id, items in groups.items():
-        hc = db.query(models.HistoricalCase).get(hc_id)
+        hc = hcs_by_id.get(hc_id)
         if not hc:
             continue
         retrieved_groups.append({

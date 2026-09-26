@@ -48,7 +48,18 @@ class LegalCitationGraph:
     def build_from_db(self, db: Session):
         """Populates graph from HistoricalCase records and precomputes authority metrics."""
         self.graph.clear()
-        cases = db.query(models.HistoricalCase).all()
+        cases = (
+            db.query(
+                models.HistoricalCase.id,
+                models.HistoricalCase.case_name,
+                models.HistoricalCase.court,
+                models.HistoricalCase.year,
+                models.HistoricalCase.citation,
+                models.HistoricalCase.cites_count,
+                models.HistoricalCase.cited_by_count,
+            )
+            .all()
+        )
         for c in cases:
             self.graph.add_node(
                 c.id,
@@ -60,20 +71,30 @@ class LegalCitationGraph:
                 cited_by=c.cited_by_count or 0,
             )
 
-        # Connect citations where historical cases reference each other or shared citations
-        all_nodes = list(self.graph.nodes(data=True))
-        for i, (id_a, data_a) in enumerate(all_nodes):
-            for j, (id_b, data_b) in enumerate(all_nodes):
-                if i == j:
-                    continue
-                # If case A is newer than B and shares jurisdiction or citations
-                year_a = data_a.get("year") or 2020
-                year_b = data_b.get("year") or 2010
-                if year_a > year_b and data_a.get("court") == data_b.get("court"):
-                    # Add precedent citation edge
-                    if (data_b.get("cited_by", 0) > 5) or (i + j) % 5 == 0:
-                        self.graph.add_edge(id_a, id_b, type="cites")
+        # Connect citations where historical cases reference each other or shared court jurisdiction
+        # Group cases by court to avoid comparing cross-court cases
+        by_court: Dict[str, list] = {}
+        for c in cases:
+            by_court.setdefault(c.court or "Other", []).append(c)
 
+        edges = []
+        for court_cases in by_court.values():
+            # Sort by year descending
+            sorted_court_cases = sorted(
+                court_cases, key=lambda x: (x.year or 2020), reverse=True
+            )
+            for i, c_a in enumerate(sorted_court_cases):
+                # Link each case to a few top-cited older cases in same court
+                link_count = 0
+                for c_b in sorted_court_cases[i + 1 :]:
+                    if (c_b.year or 2010) < (c_a.year or 2020):
+                        if (c_b.cited_by_count or 0) > 5 or link_count < 2:
+                            edges.append((c_a.id, c_b.id))
+                            link_count += 1
+                            if link_count >= 5:
+                                break
+
+        self.graph.add_edges_from(edges, type="cites")
         self._rebuild_cache()
 
     def get_case_citation_subgraph(self, case_id: str, depth: int = 1) -> Dict[str, Any]:
