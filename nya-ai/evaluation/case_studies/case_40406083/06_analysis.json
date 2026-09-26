@@ -1,0 +1,368 @@
+{
+  "study_id": "case_40406083",
+  "analysis_latency_ms": 4079.99,
+  "analysis_ok": true,
+  "analysis_id": "7aa750e39e32",
+  "result": {
+    "analysis_id": "7aa750e39e32",
+    "similar_cases": [
+      {
+        "case_name": "Krishna Janardhan Bhat vs Dattatraya G. Hegde",
+        "court": "Supreme Court of India",
+        "year": 2008,
+        "relevance_score": 0.3,
+        "why_relevant": "Shares key terms/fact-patterns with the current case: accused, beyond, case, doubt, evidence, evidentiary.",
+        "matching_excerpt": "evidence as the existence of negative evidence is neither possible nor contemplated and even if led, is to be seen with a doubt\u0005\u0014 [Emphasis supplied]\n\n25. Furthermore, whereas prosecution must prove the guilt of an accused beyond all reasonable doubt, the standard of proof so as to prove a defence on the part of an accused is \u0011preponderance of probabilities\u0012. Inference of preponderance of probabil",
+        "ref_key": "S1"
+      },
+      {
+        "case_name": "M.S. Narayana Menon @ Mani vs State Of Kerala & Anr",
+        "court": "Supreme Court of India",
+        "year": 2006,
+        "relevance_score": 0.297,
+        "why_relevant": "Shares key terms/fact-patterns with the current case: accused, beyond, case, criminal, doubt, facts.",
+        "matching_excerpt": "nnocence of the accused which may reasonably be true, even though it is not positively proved to be true, the accused would be entitled to acquittal.\"\n\nIn The State through the Delhi Administration v. Sanjay Gandhi [AIR 1978 SC 961], it was stated:\n\"\u0005Indeed, proof of facts by preponderance of probabilities as in a civil case is not foreign to criminal jurisprudence because, in cases where the stat",
+        "ref_key": "S2",
+        "rerank_total_score": 0.368,
+        "score_breakdown": {
+          "semantic": 0.0,
+          "lexical": 0.989,
+          "statute_overlap": 0.0,
+          "issue_alignment": 0.2,
+          "citation_authority": 1.0,
+          "court_weight": 1.0
+        }
+      },
+      {
+        "case_name": "Sharad Birdhi Chand Sarda vs State Of Maharashtra",
+        "court": "Supreme Court of India",
+        "year": 1984,
+        "relevance_score": 0.295,
+        "why_relevant": "Shares key terms/fact-patterns with the current case: accused, beyond, case, deceased, doubt, evidence.",
+        "matching_excerpt": "ses some anxiety. It the deceased was sensing foul atmosphere, why was it? But this again is only a doubt. It does not prove the guilt of the accused.\n\nIn view of the fact that this is a case of circumstantial evidence and further in view of the fact that two views are possible on the evidence on record, one pointing to the guilt of the accused and the other his innocence, the accused is entitled ",
+        "ref_key": "S3"
+      },
+      {
+        "case_name": "Vijayee Singh And Ors vs State Of Uttar Pradesh",
+        "court": "Supreme Court of India",
+        "year": 1990,
+        "relevance_score": 0.293,
+        "why_relevant": "Shares key terms/fact-patterns with the current case: accused, beyond, case, criminal, doubt, established.",
+        "matching_excerpt": "able doubt remains upon the prosecution and never changes. If on the whole case the jury have such a doubt the defendant is entitled to be acquitted.\"\n\nAnother passage at page 48 reads as follows:' \"In criminal cases the prosecution discharge their eviden- tial burden by adducing sufficient evidence to raise a prima facie case against the accused. If no evidence is called for the defence the tribu",
+        "ref_key": "S4",
+        "rerank_total_score": 0.395,
+        "score_breakdown": {
+          "semantic": 0.0,
+          "lexical": 0.977,
+          "statute_overlap": 0.0,
+          "issue_alignment": 0.5,
+          "citation_authority": 1.0,
+          "court_weight": 1.0
+        }
+      },
+      {
+        "case_name": "Shivaji Sahebrao Bobade & Anr vs State Of Maharashtra",
+        "court": "Supreme Court of India",
+        "year": 1973,
+        "relevance_score": 0.292,
+        "why_relevant": "Shares key terms/fact-patterns with the current case: accused, beyond, doubt, established, guilt, reasonable.",
+        "matching_excerpt": "he view taken by the lower court is clearly an unreasonable one that itself is a \"compelling (1) [1961] 3 S.C. R. 120. (2) [1934] L. R. 61 1. A. 398..\n\n(3)[1962] Suppl. (1) S. C. R. 104 at p. 109.\n\nreason\" for interference. For, it is a court's duty to convict a guilty person when the guilt is established beyond reasonable doubt, no less than it is its duty to acquit the accused when such guilt is",
+        "ref_key": "S5"
+      },
+      {
+        "case_name": "Rangappa vs Sri Mohan",
+        "court": "Supreme Court of India",
+        "year": 2010,
+        "relevance_score": 0.29,
+        "why_relevant": "Shares key terms/fact-patterns with the current case: accused, beyond, case, criminal, doubt, guilt.",
+        "matching_excerpt": "nstitutional right to maintain silence. Standard of proof on the part of the accused and that of the prosecution in a criminal case is different.\n\n...\n\n34. Furthermore, whereas prosecution must prove the guilt of an accused beyond all reasonable doubt, the standard of proof so as to prove a defence on the part of the accused is `preponderance of probabilities'. Inference of preponderance of probab",
+        "ref_key": "S6",
+        "rerank_total_score": 0.383,
+        "score_breakdown": {
+          "semantic": 0.0,
+          "lexical": 0.967,
+          "statute_overlap": 0.0,
+          "issue_alignment": 0.4,
+          "citation_authority": 1.0,
+          "court_weight": 1.0
+        }
+      },
+      {
+        "case_name": "Chandrappa & Ors vs State Of Karnataka",
+        "court": "Supreme Court of India",
+        "year": 2007,
+        "relevance_score": 0.289,
+        "why_relevant": "Shares key terms/fact-patterns with the current case: accused, beyond, case, deceased, doubt, established.",
+        "matching_excerpt": "ecution as to Chit Transaction, the incident which took place at about 5.30 p.m. on October 30, 1989 as also the assault at 9.30 p.m. on the same day.\n\nThe learned Additional Sessions Judge, however, considering contradictions and discrepancies in the deposition of eye witnesses, non-examination of Nagraj who was the root cause of quarrel and Krishniah, son of Obalaiah, who accompanied deceased An",
+        "ref_key": "S7",
+        "rerank_total_score": 0.373,
+        "score_breakdown": {
+          "semantic": 0.0,
+          "lexical": 0.963,
+          "statute_overlap": 0.0,
+          "issue_alignment": 0.3,
+          "citation_authority": 1.0,
+          "court_weight": 1.0
+        }
+      },
+      {
+        "case_name": "Mrinal Das & Ors vs State Of Tripura",
+        "court": "Supreme Court of India",
+        "year": 2011,
+        "relevance_score": 0.289,
+        "why_relevant": "Shares key terms/fact-patterns with the current case: accused, beyond, case, criminal, doubt, evidence.",
+        "matching_excerpt": "of reliability has to be satisfied by an approver all the more before the question of corroboration of his evidence is considered by criminal courts\"\n\n16) Further, in Ravinder Singh v. State of Haryana, (1975) 3 SCC 742, this Court, while considering the approver's testimony within the meaning of Section 133 of the Indian Evidence Act, 1872 has observed :--\n \"12. An Approver is a most unworthy fri",
+        "ref_key": "S8",
+        "rerank_total_score": 0.363,
+        "score_breakdown": {
+          "semantic": 0.0,
+          "lexical": 0.963,
+          "statute_overlap": 0.0,
+          "issue_alignment": 0.2,
+          "citation_authority": 1.0,
+          "court_weight": 1.0
+        }
+      },
+      {
+        "case_name": "State (N.C.T. Of Delhi) vs Navjot [email protected] Afsan Guru",
+        "court": "Supreme Court of India",
+        "year": 2005,
+        "relevance_score": 0.287,
+        "why_relevant": "Shares key terms/fact-patterns with the current case: accused, beyond, case, criminal, deceased, doubt.",
+        "matching_excerpt": "cident or the previous day. The accused carrying the same with him soon after the incident furnishes cogent evidence pointing towards his involvement.\n\nThe circumstances detailed above clearly establish that the appellant Afzal was associated with the deceased terrorists in almost every act done by them in order to achieve the objective of attacking the Parliament House. He established close conta",
+        "ref_key": "S10"
+      },
+      {
+        "case_name": "State Of Rajasthan vs Shera Ram @ Vishnu Dutta",
+        "court": "Supreme Court of India",
+        "year": 2011,
+        "relevance_score": 0.284,
+        "why_relevant": "Shares key terms/fact-patterns with the current case: accused, beyond, case, criminal, doubt, evidence.",
+        "matching_excerpt": "it is obvious that an appeal against acquittal is considered on slightly different parameters compared to an ordinary appeal preferred to this Court.\n\n13. When an accused is acquitted of a criminal charge, a right vests in him to be a free citizen and this Court is very cautious in taking away that right. The presumption of innocence of the accused is further strengthened by the fact of acquittal ",
+        "ref_key": "S14"
+      }
+    ],
+    "citations": [
+      {
+        "ref_key": "S1",
+        "source_type": "historical_case",
+        "case_name": "Krishna Janardhan Bhat vs Dattatraya G. Hegde",
+        "document_filename": "judgment_1c7afed45233.txt",
+        "page_number": null,
+        "excerpt": "evidence as the existence of negative evidence is neither possible nor contemplated and even if led, is to be seen with a doubt\u0005\u0014 [Emphasis supplied]\n\n25. Furthermore, whereas prosecution must prove the guilt of an accused beyond all reasonable doubt, the standard of proof so as to prove a defence on the part of an accused is \u0011preponderance of probabilities\u0012. Inference of preponderance of probabilities can be drawn not only from the materials brought on records by the parties but also by referen",
+        "similarity_score": 0.3,
+        "chunk_id": "45305879105e",
+        "historical_case_id": "1c7afed45233"
+      },
+      {
+        "ref_key": "S2",
+        "source_type": "historical_case",
+        "case_name": "M.S. Narayana Menon @ Mani vs State Of Kerala & Anr",
+        "document_filename": "judgment_9f4d10318b2c.txt",
+        "page_number": null,
+        "excerpt": "nnocence of the accused which may reasonably be true, even though it is not positively proved to be true, the accused would be entitled to acquittal.\"\n\nIn The State through the Delhi Administration v. Sanjay Gandhi [AIR 1978 SC 961], it was stated:\n\"\u0005Indeed, proof of facts by preponderance of probabilities as in a civil case is not foreign to criminal jurisprudence because, in cases where the statute raises a presumption of guilt as, for example, the Prevention of Corruption Act, the accused is ",
+        "similarity_score": 0.2966068148683566,
+        "chunk_id": "a02177aeea83",
+        "historical_case_id": "9f4d10318b2c"
+      },
+      {
+        "ref_key": "S3",
+        "source_type": "historical_case",
+        "case_name": "Sharad Birdhi Chand Sarda vs State Of Maharashtra",
+        "document_filename": "judgment_a0ec8c48de15.txt",
+        "page_number": null,
+        "excerpt": "ses some anxiety. It the deceased was sensing foul atmosphere, why was it? But this again is only a doubt. It does not prove the guilt of the accused.\n\nIn view of the fact that this is a case of circumstantial evidence and further in view of the fact that two views are possible on the evidence on record, one pointing to the guilt of the accused and the other his innocence, the accused is entitled to have the benefit of one which is favourable to him. In that view of the matter I agree with my le",
+        "similarity_score": 0.29507476376464914,
+        "chunk_id": "e5d49a7f1c5f",
+        "historical_case_id": "a0ec8c48de15"
+      },
+      {
+        "ref_key": "S4",
+        "source_type": "historical_case",
+        "case_name": "Vijayee Singh And Ors vs State Of Uttar Pradesh",
+        "document_filename": "judgment_b08596cb8447.txt",
+        "page_number": null,
+        "excerpt": "able doubt remains upon the prosecution and never changes. If on the whole case the jury have such a doubt the defendant is entitled to be acquitted.\"\n\nAnother passage at page 48 reads as follows:' \"In criminal cases the prosecution discharge their eviden- tial burden by adducing sufficient evidence to raise a prima facie case against the accused. If no evidence is called for the defence the tribunal of fact must decide whether the prosecution has succeeded in discharging its persuasive burden b",
+        "similarity_score": 0.2929583519200367,
+        "chunk_id": "6c5cd6c3bdbf",
+        "historical_case_id": "b08596cb8447"
+      },
+      {
+        "ref_key": "S5",
+        "source_type": "historical_case",
+        "case_name": "Shivaji Sahebrao Bobade & Anr vs State Of Maharashtra",
+        "document_filename": "judgment_1b9717cecf1b.txt",
+        "page_number": null,
+        "excerpt": "he view taken by the lower court is clearly an unreasonable one that itself is a \"compelling (1) [1961] 3 S.C. R. 120. (2) [1934] L. R. 61 1. A. 398..\n\n(3)[1962] Suppl. (1) S. C. R. 104 at p. 109.\n\nreason\" for interference. For, it is a court's duty to convict a guilty person when the guilt is established beyond reasonable doubt, no less than it is its duty to acquit the accused when such guilt is not so established.\"",
+        "similarity_score": 0.29203387168135253,
+        "chunk_id": "f3342416351e",
+        "historical_case_id": "1b9717cecf1b"
+      },
+      {
+        "ref_key": "S6",
+        "source_type": "historical_case",
+        "case_name": "Rangappa vs Sri Mohan",
+        "document_filename": "judgment_aa0d181d82c6.txt",
+        "page_number": null,
+        "excerpt": "nstitutional right to maintain silence. Standard of proof on the part of the accused and that of the prosecution in a criminal case is different.\n\n...\n\n34. Furthermore, whereas prosecution must prove the guilt of an accused beyond all reasonable doubt, the standard of proof so as to prove a defence on the part of the accused is `preponderance of probabilities'. Inference of preponderance of probabilities can be drawn not only from the materials brought on record by the parties but also by refere",
+        "similarity_score": 0.28995813104067564,
+        "chunk_id": "b10617631040",
+        "historical_case_id": "aa0d181d82c6"
+      },
+      {
+        "ref_key": "S7",
+        "source_type": "historical_case",
+        "case_name": "Chandrappa & Ors vs State Of Karnataka",
+        "document_filename": "judgment_b1a018020bb1.txt",
+        "page_number": null,
+        "excerpt": "ecution as to Chit Transaction, the incident which took place at about 5.30 p.m. on October 30, 1989 as also the assault at 9.30 p.m. on the same day.\n\nThe learned Additional Sessions Judge, however, considering contradictions and discrepancies in the deposition of eye witnesses, non-examination of Nagraj who was the root cause of quarrel and Krishniah, son of Obalaiah, who accompanied deceased Anjanianappa to hospital, conflicting version as to injury sustained by accused No. 1 Chandrappa, pres",
+        "similarity_score": 0.2888052588984881,
+        "chunk_id": "c065d0506b5d",
+        "historical_case_id": "b1a018020bb1"
+      },
+      {
+        "ref_key": "S8",
+        "source_type": "historical_case",
+        "case_name": "Mrinal Das & Ors vs State Of Tripura",
+        "document_filename": "judgment_9c430ba37e97.txt",
+        "page_number": null,
+        "excerpt": "of reliability has to be satisfied by an approver all the more before the question of corroboration of his evidence is considered by criminal courts\"\n\n16) Further, in Ravinder Singh v. State of Haryana, (1975) 3 SCC 742, this Court, while considering the approver's testimony within the meaning of Section 133 of the Indian Evidence Act, 1872 has observed :--\n \"12. An Approver is a most unworthy friend, if at all, and he, having bargained for his immunity, must prove his worthiness for credibility",
+        "similarity_score": 0.28878806435651466,
+        "chunk_id": "a69ace2a7dc3",
+        "historical_case_id": "9c430ba37e97"
+      },
+      {
+        "ref_key": "S9",
+        "source_type": "historical_case",
+        "case_name": "Sharad Birdhi Chand Sarda vs State Of Maharashtra",
+        "document_filename": "judgment_a0ec8c48de15.txt",
+        "page_number": null,
+        "excerpt": "r Varadarajan, J. It will therefore serve no useful purpose to repeat these here. It is necessary, however, for me to make the following observations.\n\nIt is a case of circumstantial evidence. It is also undisputed that the deceased died of potassium cyanide on the night of 11th and 12th June. 13th June was the date fixed for the betrothal of the sister of the accused. There is no evidence that the accused was in any way hostile or inamicable towards his sister. The deceased had a very sensitive",
+        "similarity_score": 0.2877161766277144,
+        "chunk_id": "674af16ff2d0",
+        "historical_case_id": "a0ec8c48de15"
+      },
+      {
+        "ref_key": "S10",
+        "source_type": "historical_case",
+        "case_name": "State (N.C.T. Of Delhi) vs Navjot [email protected] Afsan Guru",
+        "document_filename": "judgment_aa2a1f546ec4.txt",
+        "page_number": null,
+        "excerpt": "cident or the previous day. The accused carrying the same with him soon after the incident furnishes cogent evidence pointing towards his involvement.\n\nThe circumstances detailed above clearly establish that the appellant Afzal was associated with the deceased terrorists in almost every act done by them in order to achieve the objective of attacking the Parliament House. He established close contacts with the deceased terrorists, more especially, Mohammed. Short of participating in the actual at",
+        "similarity_score": 0.2865961595612285,
+        "chunk_id": "f8cc737ee271",
+        "historical_case_id": "aa2a1f546ec4"
+      },
+      {
+        "ref_key": "S11",
+        "source_type": "historical_case",
+        "case_name": "M.S. Narayana Menon @ Mani vs State Of Kerala & Anr",
+        "document_filename": "judgment_9f4d10318b2c.txt",
+        "page_number": null,
+        "excerpt": "ock Exchange.\n\nMoreover, the onus on an accused is not as heavy as that of the prosecution. It may be compared with a defendant in a civil proceeding.\n\nIn Harbhajan Singh v. State of Punjab and another [AIR 1966 SC 97], this Court while considering the nature and scope of onus of proof which the accused was required to discharge in seeking the protection of exception 9 to Section 499 of the Indian Penal Code stated the law as under:\n\"\u0005In other words, the onus on an accused person may well be com",
+        "similarity_score": 0.28622679332705236,
+        "chunk_id": "123a80a24dee",
+        "historical_case_id": "9f4d10318b2c"
+      },
+      {
+        "ref_key": "S12",
+        "source_type": "historical_case",
+        "case_name": "State (N.C.T. Of Delhi) vs Navjot [email protected] Afsan Guru",
+        "document_filename": "judgment_aa2a1f546ec4.txt",
+        "page_number": null,
+        "excerpt": "tter for the Courts of fact to examine. In the instant case, the Courts below have concurrently found the evidence of the prosecutrix to be reliable\u0005\"\n\nThe earlier observation at paragraph 10 is also important:\n\"It is no doubt true that much evidentiary value cannot be attached to the identification of the accused in court where identifying witness is a total stranger who had just a fleeting glimpse of the person identified or who had no particular reason to remember the person concerned, if the",
+        "similarity_score": 0.2855747683180005,
+        "chunk_id": "0b0a1b077b27",
+        "historical_case_id": "aa2a1f546ec4"
+      },
+      {
+        "ref_key": "S13",
+        "source_type": "historical_case",
+        "case_name": "Shivaji Sahebrao Bobade & Anr vs State Of Maharashtra",
+        "document_filename": "judgment_1b9717cecf1b.txt",
+        "page_number": null,
+        "excerpt": "15, Narayan, the police patil at Bibi, Ext. 8. The report was recorded and was transmitted to the police, the First Information Report being Ext. 36.\n\nSeveral witnesses were examined and documents exhibited at the end of which the Sessions Court concluded : \"In any case a reasonable doubt is cast to the case of the prosecution and the benefit thereof must be given to the accused. I,, therefore, hold that it is not proved that the accused committed the offence\". In his judgment, which adverts wit",
+        "similarity_score": 0.2850650031112464,
+        "chunk_id": "3e9ca2e20492",
+        "historical_case_id": "1b9717cecf1b"
+      },
+      {
+        "ref_key": "S14",
+        "source_type": "historical_case",
+        "case_name": "State Of Rajasthan vs Shera Ram @ Vishnu Dutta",
+        "document_filename": "judgment_8c5312eeeef8.txt",
+        "page_number": null,
+        "excerpt": "it is obvious that an appeal against acquittal is considered on slightly different parameters compared to an ordinary appeal preferred to this Court.\n\n13. When an accused is acquitted of a criminal charge, a right vests in him to be a free citizen and this Court is very cautious in taking away that right. The presumption of innocence of the accused is further strengthened by the fact of acquittal of the accused under our criminal jurisprudence. The courts have held that if two views are possible",
+        "similarity_score": 0.2841643173772435,
+        "chunk_id": "2f9ee9f79698",
+        "historical_case_id": "8c5312eeeef8"
+      },
+      {
+        "ref_key": "S15",
+        "source_type": "historical_case",
+        "case_name": "Vijayee Singh And Ors vs State Of Uttar Pradesh",
+        "document_filename": "judgment_b08596cb8447.txt",
+        "page_number": null,
+        "excerpt": "that the prosecution must prove the guilt of the prisoner is part of the common law of England and no attempt to whittle it down can be enter- tained.\n\nXX XX XX\nXX XX XX\nIn many cases, however, the accused's defence will involve introducing new issues, for example, automatism, provoca- tion, self-defence, duress, etc. Once there is any evidence to support such \"explanations\" the onus of disproving them rests upon the prosecution. The accused, either by cross- examination of the prosecution witne",
+        "similarity_score": 0.28409056110086517,
+        "chunk_id": "1d5ebe1d1414",
+        "historical_case_id": "b08596cb8447"
+      },
+      {
+        "ref_key": "S16",
+        "source_type": "historical_case",
+        "case_name": "Shivaji Sahebrao Bobade & Anr vs State Of Maharashtra",
+        "document_filename": "judgment_1b9717cecf1b.txt",
+        "page_number": null,
+        "excerpt": "the background of other circumstances of the case, overcomes the rule of prudent reluctance judicially adopted in evaluating oral dying declarations.\n\nThe discovery of incriminating materials pursuant to confessions made by the accused constitutes the third category of, evidence. Obviously, the confessions are inadmissible but- the discoveries are, provided they are pertinent to the guilt of the accused., So far as accused No. 2 is concerned, his statement resulted in the discovery of a knife (v",
+        "similarity_score": 0.28340344042245075,
+        "chunk_id": "556114452fd0",
+        "historical_case_id": "1b9717cecf1b"
+      },
+      {
+        "ref_key": "S17",
+        "source_type": "historical_case",
+        "case_name": "M.S. Narayana Menon @ Mani vs State Of Kerala & Anr",
+        "document_filename": "judgment_9f4d10318b2c.txt",
+        "page_number": null,
+        "excerpt": "urden of an issue lies upon the accused, he is not required to discharge that burden by leading evidence to prove his case beyond a reasonable doubt\u0005\"\n\n[See also State of Maharashtra v. Wasudeo Ramchandra Kaidalwar, AIR 1981 SC 1186] In Kali Ram v. State of Himachal Pradesh [(1973) 2 SCC 808], Khanna, J., speaking for the 3-Judge Bench, held: \"\u0005One of the cardinal principles which has always to be kept in view in our system of administration of justice for criminal cases is that a person arraign",
+        "similarity_score": 0.2832254391582122,
+        "chunk_id": "29c67f33c1ba",
+        "historical_case_id": "9f4d10318b2c"
+      },
+      {
+        "ref_key": "S18",
+        "source_type": "historical_case",
+        "case_name": "Vijayee Singh And Ors vs State Of Uttar Pradesh",
+        "document_filename": "judgment_b08596cb8447.txt",
+        "page_number": null,
+        "excerpt": "sprudence that the prose- cution has to prove its case beyond all reasonable doubt and the benefit of every reasonable doubt should go to the accused.\n\nIt will be useful to refer to some of the passages from the text books of outstanding authors on evidence and then proceed to consider the ratio laid down by the Supreme Court cases on this aspect. In Phipson on Evidence, 13th edn. page 44, a passage reads as follows:\n\"The burden is upon the prosecution of proving a defendant's guilt beyond reaso",
+        "similarity_score": 0.2830087283559534,
+        "chunk_id": "607f1d04a14b",
+        "historical_case_id": "b08596cb8447"
+      },
+      {
+        "ref_key": "S19",
+        "source_type": "historical_case",
+        "case_name": "State (N.C.T. Of Delhi) vs Navjot [email protected] Afsan Guru",
+        "document_filename": "judgment_aa2a1f546ec4.txt",
+        "page_number": null,
+        "excerpt": "early show that the conspiracy started only in the first week of December, 2001, yet the period of offence was stated to be \"on or before 13.12.2001\".\n\n(ii) It is settled law that a 'fundamental defect' should be found in the charges if the Court has to quash it. Whether the accused was misled and whether there was reasonable possibility of prejudice being caused to the accused on account of defective charges are relevant considerations in judging the effect of wrong or deficient charges. Sectio",
+        "similarity_score": 0.28268305928302406,
+        "chunk_id": "1ae16e3ed611",
+        "historical_case_id": "aa2a1f546ec4"
+      },
+      {
+        "ref_key": "S20",
+        "source_type": "historical_case",
+        "case_name": "Sharad Birdhi Chand Sarda vs State Of Maharashtra",
+        "document_filename": "judgment_a0ec8c48de15.txt",
+        "page_number": null,
+        "excerpt": "o not for proving the positive fact but as an indication of a negative fact, namely raising some doubt about the guilt of the accused as in this case.\n\nFor the purpose of expressing my respectful concurrence with the views of Justice Fazal Ali, it is not necessary for me to agree and I do not do so with all the detailed inferences that my learned brother has chosen to draw in respect of the several matters from the exhibits in this case. I am also with respect not prepared to draw all the infere",
+        "similarity_score": 0.2821566724291483,
+        "chunk_id": "3693e45c57f7",
+        "historical_case_id": "a0ec8c48de15"
+      }
+    ]
+  }
+}

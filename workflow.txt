@@ -1,0 +1,230 @@
+================================================================================
+NYA(AI) — SYSTEM WORKFLOW, ARCHITECTURAL FRAMEWORK & DECISION FORMULAS
+================================================================================
+File: workflow.txt
+Project: Nya(AI) — AI-Assisted Legal Intelligence & Decision-Support System
+Jurisdiction: Indian Legal Jurisprudence (Supreme Court & High Courts)
+Purpose: Comprehensive explanation of end-to-end operational workflow, 
+         architectural frameworks, decision-making logic, mathematical formulas, 
+         and ranking algorithms.
+================================================================================
+
+
+1. SYSTEM ARCHITECTURE & HIGH-LEVEL FRAMEWORK
+--------------------------------------------------------------------------------
+The system is built on a specialized 5-layer Legal Decision-Support Architecture:
+
+  [ Layer 1: Data Acquisition & Preprocessing ]
+       │
+       ▼
+  [ Layer 2: Canonical Legal Structure Extraction & Parsing ]
+       │
+       ▼
+  [ Layer 3: Hybrid Retrieval Engine (Dense Semantic + BM25Plus Lexical) ]
+       │
+       ▼
+  [ Layer 4: Multi-Signal Legal Reranker & Citation Graph Authority Engine ]
+       │
+       ▼
+  [ Layer 5: Zero-Hallucination Legal Reasoning & Structured Synthesis ]
+
+
+--------------------------------------------------------------------------------
+2. DETAILED STEP-BY-STEP OPERATIONAL WORKFLOW
+--------------------------------------------------------------------------------
+
+Step 1: Document Ingestion & Case Registration
+- Input: User uploads legal documents (.pdf, .docx, .txt) or provides an Indian Kanoon URL.
+- Acquisition:
+  * For URLs: Indian Kanoon scraper downloads judgment text with exponential backoff and user-agent rotation.
+  * For Files: PyPDF / python-docx / UTF-8 decoders extract raw text streams.
+- Text Sanitization (text_cleaner.py):
+  * Cleans boilerplate headers/footers, court stamps, page markers, and noise.
+  * Normalizes line breaks and whitespace.
+- Legal Document Chunking:
+  * Text is split into semantic paragraphs/chunks (approx. 400-800 characters) preserving legal paragraph integrity.
+  * Every chunk records metadata: case_id, historical_case_id, document_id, page_number, character offsets.
+
+Step 2: Canonical Legal Structure Extraction (legal_structure.py)
+Unstructured judgments or case pleadings are parsed using deterministic pattern extractors to segment the text into canonical legal heads:
+  1. Facts of the Case (FIR narrative, background chronology)
+  2. Issues Framed (Constitutional or statutory questions of law)
+  3. Petitioner / Appellant Arguments
+  4. Respondent / State Arguments
+  5. Statutory Provisions (Act name, Section numbers, Articles)
+  6. Judicial Ratio & Reasoning
+  7. Final Holding / Order (Allowed / Dismissed / Disposed)
+
+Step 3: Dual-Channel Dense & Lexical Vectorization
+- Dense Embeddings:
+  * SentenceTransformers (`sentence-transformers/all-MiniLM-L6-v2`, 384 dimensions) embeds query texts and corpus chunks.
+  * Fallback: Deterministic MD5 hash vectorizer for lightweight offline environments.
+- Lexical Indexing:
+  * Corpus vocabulary is tokenized using legal stopwords filtration and length filtering.
+  * Tokenized corpus is indexed via BM25Plus (`rank_bm25`).
+
+Step 4: Hybrid Candidate Retrieval (retrieval.py)
+- Evaluates query case narrative against all indexed historical judgment chunks.
+- Computes both Cosine Semantic Similarity and BM25Plus Lexical score.
+- Applies Hybrid Score Fusion.
+- Enforces Case Diversification:
+  * Caps maximum chunks per historical case (e.g., maximum 2-3 chunks per precedent) so verbose landmark cases do not monopolize retrieval results.
+
+Step 5: Multi-Signal Precedent Reranking (reranker.py & citation_graph.py)
+- Candidate precedents are scored across 6 independent legal signals:
+  1. Semantic Narrative Similarity
+  2. BM25 Lexical Keyword Overlap
+  3. Statutory / Section Overlap (IPC, CrPC, Constitution)
+  4. Legal Issue / Vocabulary Alignment
+  5. Citation Graph Authority (In-Degree Precedent Centrality)
+  6. Court Hierarchy Weight (Supreme Court > High Court)
+- Candidate ranking is sorted descending by the composite total score.
+
+Step 6: LLM Synthesis with Grounded Citation Chips (analysis_service.py)
+- Retrieved chunks are transformed into immutable source reference keys (`[S1]`, `[S2]`, ..., `[Sn]`).
+- Pluggable LLM Backend (Anthropic Claude API or Grounded Deterministic Legal NLP):
+  * Structured output JSON generation with strict prompt constraints forbidding uncited facts.
+  * Every factual assertion, legal principle, or argument MUST point to a source chip `[Si]`.
+  * Outputs generated:
+      a) Similar Cases Matrix
+      b) Pre-Hearing Brief
+      c) Prosecution vs. Defence Argument Trees
+      d) Evidence Gaps & Missing Chain Analysis
+      e) Internal Document Contradictions
+      f) Statutory Overview
+
+
+--------------------------------------------------------------------------------
+3. MATHEMATICAL FORMULAS & DECISION ALGORITHMS
+--------------------------------------------------------------------------------
+
+A. DENSE SEMANTIC SIMILARITY (Cosine Distance)
+   For query vector Q and candidate chunk embedding C:
+
+             Q · C                Σ (Q_i * C_i)
+   Sim_sem = ─────── = ──────────────────────────────────
+             |Q| |C|    sqrt(Σ (Q_i)^2) * sqrt(Σ (C_i)^2)
+
+   Range: [-1.0, 1.0] (clamped to [0.0, 1.0])
+
+
+B. LEXICAL RELEVANCE (BM25Plus Scoring & Normalized Keyword Overlap)
+   Uses BM25Plus algorithm:
+
+                    (k1 + 1) * f(q_i, D)
+   BM25(D, Q) = Σ [ ────────────────────────────────────── + δ ] * IDF(q_i)
+                    f(q_i, D) + k1 * (1 - b + b * (|D| / avgdl))
+
+   Where:
+   - f(q_i, D) is the term frequency of query token q_i in document/chunk D.
+   - |D| is chunk length; avgdl is average chunk length in corpus.
+   - k1 = 1.5, b = 0.75, and δ = 1.0 (BM25Plus lower-bound safeguard).
+   
+   Normalized Lexical Score:
+               Clamped_BM25(D, Q)
+   Sim_bm25 = ────────────────────
+               Max_Corpus_BM25_Score
+
+
+C. HYBRID RETRIEVAL SCORE (Stage 1 Fusion)
+   Balances conceptual semantic context with exact legal terms/sections:
+
+   Score_hybrid = α * Sim_sem + (1 - α) * Sim_bm25
+
+   Standard weights: α = 0.70 (Semantic), (1 - α) = 0.30 (BM25 Lexical)
+
+
+D. STATUTORY & SECTION OVERLAP SCORE
+   Let T_prov be the set of target sections/acts cited in the query case (e.g. {"section 302 ipc", "article 21"}).
+   Let chunk_text be the content of the candidate precedent chunk.
+
+   For each target provision p in T_prov:
+       If p is found in chunk_text.lower():
+           Statute_Score = Statute_Score + 0.5
+
+   Statute_Overlap_Score = min(1.0, Statute_Score)
+
+
+E. LEGAL ISSUE & FACT ALIGNMENT SCORE
+   Compares legal issues text (T_issues) of query case with the precedent's judicial summary (S_hc):
+
+                          | Words(T_issues) ∩ Words(S_hc) |
+   Issue_Alignment_Score = min( 1.0, ─────────────────────────────── )
+                                                  10
+
+
+F. CITATION GRAPH AUTHORITY SCORE (citation_graph.py)
+   Built using NetworkX directed citation graph G = (V, E), where:
+   - V = set of Historical Cases
+   - E = directed edges (Case A -> cites -> Case B)
+   
+   In-Degree Centrality Formula:
+                                     InDegree(Case_i)
+   Authority_Score(Case_i) = ─────────────────────────────────
+                              max( 1, Total_Cases_in_Graph |V| )
+
+   Normalized against historical citation records:
+   Authority_Score = max( Authority_Score, min( 1.0, Cited_By_Count / 100.0 ) )
+
+
+G. COURT HIERARCHY WEIGHT
+   Reflects the doctrine of precedent under Article 141 of the Indian Constitution:
+   
+   Hierarchy_Weight = 1.00  (if Court is Supreme Court of India)
+                      0.75  (if Court is a State High Court)
+                      0.50  (if District / Subordinate / Tribunal)
+
+
+H. COMPOSITE MULTI-SIGNAL RERANKING FORMULA (Stage 2 Final Decision)
+   Final Precedent Rank Score =
+       w_sem      * Sim_sem +
+       w_lexical  * Sim_bm25 +
+       w_statute  * Statute_Overlap_Score +
+       w_issue    * Issue_Alignment_Score +
+       w_citation * Authority_Score +
+       w_court    * Hierarchy_Weight
+
+   Standard Calibration Weights (weights sum to 1.00):
+   ┌────────────────────────┬─────────┬──────────────────────────────────────────┐
+   │ Signal                 │ Weight  │ Legal Rationale                          │
+   ├────────────────────────┼─────────┼──────────────────────────────────────────┤
+   │ w_sem (Semantic)       │  0.35   │ Captures narrative fact pattern nuances  │
+   │ w_lexical (BM25)       │  0.20   │ Matches exact legal nomenclature         │
+   │ w_statute (Provisions) │  0.20   │ Prioritizes shared sections/statutes     │
+   │ w_issue (Issues)       │  0.10   │ Aligns framed legal controversy          │
+   │ w_citation (Authority) │  0.08   │ Rewards established, cited precedents    │
+   │ w_court (Hierarchy)    │  0.07   │ Constitutional binding priority (SC > HC)│
+   └────────────────────────┴─────────┴──────────────────────────────────────────┘
+
+
+--------------------------------------------------------------------------------
+4. HOW DECISIONS ARE MADE (DECISION LOGIC & GOVERNANCE)
+--------------------------------------------------------------------------------
+
+1. Candidate Selection Decision:
+   - If a candidate case has strong semantic similarity but zero statutory overlap,
+     its score is penalized relative to cases that share the exact charged section.
+   - If two cases share identical sections, the Supreme Court decision with higher
+     citation authority automatically ranks ahead of an unreferenced High Court decision.
+
+2. Explanation Generation Logic:
+   - For every reranked candidate, the system generates a transparent human-readable
+     justification breakdown:
+       * Sim_sem > 0.40  -> "Strong semantic narrative similarity"
+       * Sim_bm25 > 0.30 -> "High keyword overlap"
+       * Shared Statutes -> "Shared statutory provisions (e.g., Section 302, Article 21)"
+       * Supreme Court   -> "Binding Supreme Court precedent"
+       * Authority > 0.20 -> "Frequently cited authority"
+
+3. Zero-Hallucination Provenance Enforcement:
+   - Every returned argument, fact, and comparison is bound to its `chunk_id`.
+   - If an assertion cannot be attributed to an indexed chunk in `nya.db`,
+     it is disqualified by the prompt synthesis guardrails.
+   - Citations are persisted in the `citations` table with direct links to:
+       * Case Name, Document Name, Page Number, and Character Offsets.
+
+4. Contradiction & Evidence Gap Decision Engine:
+   - Detects timeline discrepancies, witness statement variances, and missing links
+     (e.g., FIR vs. Charge Sheet vs. Medical Report) by cross-comparing internal
+     case document chunks using semantic similarity thresholds.
+================================================================================

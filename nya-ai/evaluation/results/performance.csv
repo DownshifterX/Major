@@ -1,0 +1,8 @@
+stage,n_samples,mean_ms,median_ms,p95_ms,min_ms,max_ms,percentile_convention
+semantic_retrieval,2,330.88,330.88,313.8,313.8,347.97,nearest_rank_order_statistic_k=floor(0.95*N)-1
+bm25_retrieval,2,234.89,234.89,233.29,233.29,236.5,nearest_rank_order_statistic_k=floor(0.95*N)-1
+candidate_generation,2,2551.7,2551.7,2496.36,2496.36,2607.05,nearest_rank_order_statistic_k=floor(0.95*N)-1
+feature_extraction,2,8.69,8.69,8.37,8.37,9.01,nearest_rank_order_statistic_k=floor(0.95*N)-1
+citation_scoring,60,0.0,0.0,0.0,0.0,0.0,nearest_rank_order_statistic_k=floor(0.95*N)-1
+reranking,2,6.49,6.49,6.47,6.47,6.51,nearest_rank_order_statistic_k=floor(0.95*N)-1
+complete_query_latency,2,2502.28,2502.28,2417.77,2417.77,2586.78,nearest_rank_order_statistic_k=floor(0.95*N)-1

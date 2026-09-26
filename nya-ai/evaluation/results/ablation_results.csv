@@ -1,0 +1,8 @@
+config,description,mrr,precision_at_5,recall_at_5,recall_at_10,ndcg_at_5,ndcg_at_10,delta_ndcg_at_10,delta_ndcg_at_5,delta_mrr,avg_latency_ms
+all_six_signals,All six signals (Fixed MCDA baseline),1.0,0.96,0.1693,0.2466,0.8444,0.7584,0.0,0.0,0.0,4068.12
+minus_semantic,All signals minus Semantic similarity,1.0,0.92,0.1613,0.2566,0.7997,0.7554,0.003,0.0447,0.0,2559.29
+minus_lexical,All signals minus Lexical similarity (BM25+),1.0,0.92,0.1613,0.2385,0.7819,0.7172,0.0412,0.0625,0.0,2573.36
+minus_statute,All signals minus Statutory overlap,1.0,0.96,0.1693,0.2466,0.8444,0.7584,0.0,0.0,0.0,2518.28
+minus_issue,All signals minus Legal issue alignment,1.0,0.92,0.1613,0.2404,0.8347,0.732,0.0264,0.0097,0.0,2605.09
+minus_citation,All signals minus Citation authority,1.0,0.96,0.1693,0.2371,0.8426,0.7532,0.0052,0.0018,0.0,2574.59
+minus_court,All signals minus Court hierarchy,1.0,0.96,0.1693,0.2466,0.8444,0.7584,0.0,0.0,0.0,2499.89

@@ -1,0 +1,43 @@
+{
+  "study_id": "case_40406083",
+  "extraction_latency_ms": 0.44,
+  "facts_length": 342,
+  "issues_count": 1,
+  "petitioner_args_count": 0,
+  "respondent_args_count": 0,
+  "reasoning_count": 0,
+  "decision_length": 324,
+  "laws_found": [
+    "Indian Penal Code"
+  ],
+  "sections_found": [
+    "Section 302 of the Indian Penal Code",
+    "Section 302"
+  ],
+  "extracted": {
+    "facts": "In the High Court of Judicature at Bombay\n\nState of Maharashtra vs Ramesh Kumar\n\nFacts of the Case: On 5th April 2022, the deceased Suresh Patil was allegedly attacked with a sharp weapon at his residence in Pune district. The accused Ramesh Kumar was apprehended near the scene. FIR was registered under Section 302 of the Indian Penal Code.",
+    "legal_issues": [
+      "Determination of liability and compliance with statutory provisions."
+    ],
+    "petitioner_arguments": [],
+    "respondent_arguments": [],
+    "evidence": [
+      "Issues for Determination: Whether the prosecution has established guilt beyond reasonable doubt. Whether eyewitness testimony corroborated by forensic evidence satisfies the standard under Section 302 IPC.",
+      "Learned counsel for the accused submitted that the eyewitness was an interested witness being the brother of the deceased and his testimony should not be believed.",
+      "The Public Prosecutor submitted that the forensic report confirms blood of the deceased on the accused's clothes and the eyewitness testimony was consistent and corroborated.",
+      "We have carefully examined the evidence. The testimony of a related witness is not automatically discarded. If it is otherwise reliable and corroborated, it can form the basis of conviction. The forensic evidence here corroborates the eyewitness account.",
+      "Conviction under Section 302 IPC is upheld. The appeal is dismissed."
+    ],
+    "reasoning": [],
+    "decision": "We have carefully examined the evidence. The testimony of a related witness is not automatically discarded. If it is otherwise reliable and corroborated, it can form the basis of conviction. The forensic evidence here corroborates the eyewitness account.\n\nConviction under Section 302 IPC is upheld. The appeal is dismissed.",
+    "relief": "Conviction under Section 302 IPC is upheld. The appeal is dismissed.",
+    "laws": [
+      "Indian Penal Code"
+    ],
+    "sections": [
+      "Section 302 of the Indian Penal Code",
+      "Section 302"
+    ],
+    "precedents": []
+  }
+}

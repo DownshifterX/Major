@@ -35,23 +35,20 @@ from app.services.citation_graph import get_citation_graph
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("ingest_dataset")
 
-DATASET_PARQUET_1 = BASE_DIR.parent.parent / "dataset - hugging face" / "part1.parquet"
-DATASET_PARQUET_2 = BASE_DIR.parent.parent / "dataset - hugging face" / "part2.parquet"
+DATASET_LAND_XLSX = BASE_DIR.parent.parent / "dataset - hugging face" / "land_disputes.xlsx"
 DATASET_XLSX = BASE_DIR.parent.parent / "dataset - hugging face" / "combined.xlsx"
 
 
 def load_dataset() -> pd.DataFrame:
-    """Loads dataset from parquet or Excel."""
-    if DATASET_PARQUET_1.exists() and DATASET_PARQUET_2.exists():
-        logger.info(f"Loading parquet dataset from {DATASET_PARQUET_1.name} and {DATASET_PARQUET_2.name}...")
-        df1 = pd.read_parquet(DATASET_PARQUET_1)
-        df2 = pd.read_parquet(DATASET_PARQUET_2)
-        return pd.concat([df1, df2], ignore_index=True)
+    """Loads dataset strictly from Excel file (land_disputes.xlsx)."""
+    if DATASET_LAND_XLSX.exists():
+        logger.info(f"Loading Excel dataset from {DATASET_LAND_XLSX.name}...")
+        return pd.read_excel(DATASET_LAND_XLSX)
     elif DATASET_XLSX.exists():
         logger.info(f"Loading Excel dataset from {DATASET_XLSX.name}...")
         return pd.read_excel(DATASET_XLSX)
     else:
-        raise FileNotFoundError("No dataset files found in 'dataset - hugging face/'")
+        raise FileNotFoundError("No Excel dataset file found in 'dataset - hugging face/'")
 
 
 def run_audit(df: pd.DataFrame) -> Dict[str, Any]:
@@ -135,7 +132,7 @@ def ingest(limit: int = 150, batch_size: int = 25, rebuild_schema: bool = False)
                 court=court,
                 year=year,
                 citation=f"{year or ''} Indian Kanoon ({cites} cites)",
-                case_type=str(row.get("Case_Type", "General")),
+                case_type=str(row.get("Case_Type", "Land&Property")),
                 doc_url=doc_url,
                 cites_count=cites,
                 cited_by_count=cited_by,
@@ -145,7 +142,7 @@ def ingest(limit: int = 150, batch_size: int = 25, rebuild_schema: bool = False)
                 outcome="",
                 summary=clean_text[:600],
                 is_synthetic=False,
-                source_note="Grounded historical precedent from Indian Kanoon dataset.",
+                source_note="Grounded land precedent from Indian Kanoon dataset.",
             )
             db.add(hc)
             db.commit()
@@ -172,10 +169,10 @@ def ingest(limit: int = 150, batch_size: int = 25, rebuild_schema: bool = False)
             existing_urls.add(doc_url)
             ingested_count += 1
 
-            if ingested_count % batch_size == 0 or ingested_count == limit:
-                logger.info(f"Progress: Ingested {ingested_count}/{limit} cases ({num_chunks} chunks for latest)")
+            if ingested_count % batch_size == 0 or (limit and ingested_count == limit):
+                logger.info(f"Progress: Ingested {ingested_count} land cases ({num_chunks} chunks for latest)")
 
-        logger.info(f"Ingestion finished! Total ingested: {ingested_count}, skipped: {skipped_count}")
+        logger.info(f"Ingestion finished! Total land cases ingested: {ingested_count}, skipped: {skipped_count}")
 
         # Update citation graph
         logger.info("Refreshing legal citation graph...")
@@ -188,8 +185,8 @@ def ingest(limit: int = 150, batch_size: int = 25, rebuild_schema: bool = False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Ingest legal cases dataset into Nya AI.")
-    parser.add_argument("--limit", type=int, default=50, help="Number of cases to ingest (default: 50)")
-    parser.add_argument("--batch-size", type=int, default=10, help="Logging batch size")
+    parser.add_argument("--limit", type=int, default=0, help="Number of cases to ingest (0 for ALL cases in Excel)")
+    parser.add_argument("--batch-size", type=int, default=25, help="Logging batch size")
     parser.add_argument("--rebuild", action="store_true", help="Rebuild DB tables before ingestion")
     args = parser.parse_args()
 

@@ -1,0 +1,159 @@
+{
+  "study_id": "case_40406083",
+  "reranking_latency_ms": 5.4,
+  "n_reranked": 8,
+  "candidates": [
+    {
+      "chunk_id": "6c5cd6c3bdbf",
+      "historical_case_id": "b08596cb8447",
+      "case_name": "Vijayee Singh And Ors vs State Of Uttar Pradesh",
+      "court": "Supreme Court of India",
+      "year": 1990,
+      "citation": "1990 Indian Kanoon (50 cites)",
+      "total_score": 0.391,
+      "score_breakdown": {
+        "semantic": 0.0,
+        "lexical": 0.955,
+        "statute_overlap": 0.0,
+        "issue_alignment": 0.5,
+        "citation_authority": 1.0,
+        "court_weight": 1.0
+      },
+      "explanation": "Retrieved due to high keyword overlap, binding Supreme Court precedent, frequently cited authority.",
+      "excerpt": "able doubt remains upon the prosecution and never changes. If on the whole case the jury have such a doubt the defendant is entitled to be acquitted.\"\n\nAnother passage at page 48 reads as follows:' \"In criminal cases the prosecution discharge their eviden- tial burden by adducing sufficient evidence"
+    },
+    {
+      "chunk_id": "607f1d04a14b",
+      "historical_case_id": "b08596cb8447",
+      "case_name": "Vijayee Singh And Ors vs State Of Uttar Pradesh",
+      "court": "Supreme Court of India",
+      "year": 1990,
+      "citation": "1990 Indian Kanoon (50 cites)",
+      "total_score": 0.387,
+      "score_breakdown": {
+        "semantic": 0.0,
+        "lexical": 0.933,
+        "statute_overlap": 0.0,
+        "issue_alignment": 0.5,
+        "citation_authority": 1.0,
+        "court_weight": 1.0
+      },
+      "explanation": "Retrieved due to high keyword overlap, binding Supreme Court precedent, frequently cited authority.",
+      "excerpt": "sprudence that the prose- cution has to prove its case beyond all reasonable doubt and the benefit of every reasonable doubt should go to the accused.\n\nIt will be useful to refer to some of the passages from the text books of outstanding authors on evidence and then proceed to consider the ratio lai"
+    },
+    {
+      "chunk_id": "b10617631040",
+      "historical_case_id": "aa0d181d82c6",
+      "case_name": "Rangappa vs Sri Mohan",
+      "court": "Supreme Court of India",
+      "year": 2010,
+      "citation": "2010 Indian Kanoon (12 cites)",
+      "total_score": 0.378,
+      "score_breakdown": {
+        "semantic": 0.0,
+        "lexical": 0.938,
+        "statute_overlap": 0.0,
+        "issue_alignment": 0.4,
+        "citation_authority": 1.0,
+        "court_weight": 1.0
+      },
+      "explanation": "Retrieved due to high keyword overlap, binding Supreme Court precedent, frequently cited authority.",
+      "excerpt": "nstitutional right to maintain silence. Standard of proof on the part of the accused and that of the prosecution in a criminal case is different.\n\n...\n\n34. Furthermore, whereas prosecution must prove the guilt of an accused beyond all reasonable doubt, the standard of proof so as to prove a defence "
+    },
+    {
+      "chunk_id": "c065d0506b5d",
+      "historical_case_id": "b1a018020bb1",
+      "case_name": "Chandrappa & Ors vs State Of Karnataka",
+      "court": "Supreme Court of India",
+      "year": 2007,
+      "citation": "2007 Indian Kanoon (44 cites)",
+      "total_score": 0.368,
+      "score_breakdown": {
+        "semantic": 0.0,
+        "lexical": 0.939,
+        "statute_overlap": 0.0,
+        "issue_alignment": 0.3,
+        "citation_authority": 1.0,
+        "court_weight": 1.0
+      },
+      "explanation": "Retrieved due to high keyword overlap, binding Supreme Court precedent, frequently cited authority.",
+      "excerpt": "ecution as to Chit Transaction, the incident which took place at about 5.30 p.m. on October 30, 1989 as also the assault at 9.30 p.m. on the same day.\n\nThe learned Additional Sessions Judge, however, considering contradictions and discrepancies in the deposition of eye witnesses, non-examination of "
+    },
+    {
+      "chunk_id": "45305879105e",
+      "historical_case_id": "1c7afed45233",
+      "case_name": "Krishna Janardhan Bhat vs Dattatraya G. Hegde",
+      "court": "Supreme Court of India",
+      "year": 2008,
+      "citation": "2008 Indian Kanoon (22 cites)",
+      "total_score": 0.36,
+      "score_breakdown": {
+        "semantic": 0.0,
+        "lexical": 1.0,
+        "statute_overlap": 0.0,
+        "issue_alignment": 0.1,
+        "citation_authority": 1.0,
+        "court_weight": 1.0
+      },
+      "explanation": "Retrieved due to high keyword overlap, binding Supreme Court precedent, frequently cited authority.",
+      "excerpt": "evidence as the existence of negative evidence is neither possible nor contemplated and even if led, is to be seen with a doubt\u0005\u0014 [Emphasis supplied]\n\n25. Furthermore, whereas prosecution must prove the guilt of an accused beyond all reasonable doubt, the standard of proof so as to prove a defence o"
+    },
+    {
+      "chunk_id": "a69ace2a7dc3",
+      "historical_case_id": "9c430ba37e97",
+      "case_name": "Mrinal Das & Ors vs State Of Tripura",
+      "court": "Supreme Court of India",
+      "year": 2011,
+      "citation": "2011 Indian Kanoon (43 cites)",
+      "total_score": 0.359,
+      "score_breakdown": {
+        "semantic": 0.0,
+        "lexical": 0.943,
+        "statute_overlap": 0.0,
+        "issue_alignment": 0.2,
+        "citation_authority": 1.0,
+        "court_weight": 1.0
+      },
+      "explanation": "Retrieved due to high keyword overlap, binding Supreme Court precedent, frequently cited authority.",
+      "excerpt": "of reliability has to be satisfied by an approver all the more before the question of corroboration of his evidence is considered by criminal courts\"\n\n16) Further, in Ravinder Singh v. State of Haryana, (1975) 3 SCC 742, this Court, while considering the approver's testimony within the meaning of Se"
+    },
+    {
+      "chunk_id": "52cf5cc77cf3",
+      "historical_case_id": "9f4d10318b2c",
+      "case_name": "M.S. Narayana Menon @ Mani vs State Of Kerala & Anr",
+      "court": "Supreme Court of India",
+      "year": 2006,
+      "citation": "2006 Indian Kanoon (23 cites)",
+      "total_score": 0.357,
+      "score_breakdown": {
+        "semantic": 0.0,
+        "lexical": 0.933,
+        "statute_overlap": 0.0,
+        "issue_alignment": 0.2,
+        "citation_authority": 1.0,
+        "court_weight": 1.0
+      },
+      "explanation": "Retrieved due to high keyword overlap, binding Supreme Court precedent, frequently cited authority.",
+      "excerpt": "to be raised in terms of Section 118(a) of the Act, we may also notice a decision of this Court in regard to 'presumption' under Section 139 thereof.\n\nIn Hiten P. Dalal v. Bratindranath Banerjee [(2001) 6 SCC 16], a 3- Judge Bench of this Court held that although by reason of Sections 138 and 139 of"
+    },
+    {
+      "chunk_id": "e5d49a7f1c5f",
+      "historical_case_id": "a0ec8c48de15",
+      "case_name": "Sharad Birdhi Chand Sarda vs State Of Maharashtra",
+      "court": "Supreme Court of India",
+      "year": 1984,
+      "citation": "1984 Indian Kanoon (39 cites)",
+      "total_score": 0.356,
+      "score_breakdown": {
+        "semantic": 0.0,
+        "lexical": 0.979,
+        "statute_overlap": 0.0,
+        "issue_alignment": 0.1,
+        "citation_authority": 1.0,
+        "court_weight": 1.0
+      },
+      "explanation": "Retrieved due to high keyword overlap, binding Supreme Court precedent, frequently cited authority.",
+      "excerpt": "ses some anxiety. It the deceased was sensing foul atmosphere, why was it? But this again is only a doubt. It does not prove the guilt of the accused.\n\nIn view of the fact that this is a case of circumstantial evidence and further in view of the fact that two views are possible on the evidence on re"
+    }
+  ]
+}

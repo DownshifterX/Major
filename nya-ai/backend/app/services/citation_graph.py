@@ -7,6 +7,7 @@ Uses NetworkX to build and query legal citation networks:
 - Precedent path discovery between two cases
 - Community / co-citation discovery
 """
+import math
 from typing import Dict, Any, List, Optional
 import networkx as nx
 from sqlalchemy.orm import Session
@@ -16,9 +17,36 @@ from .. import models
 class LegalCitationGraph:
     def __init__(self):
         self.graph = nx.DiGraph()
+        self._in_degrees: Dict[str, int] = {}
+        self._max_in_degree: int = 0
+        self._authority_cache_log: Dict[str, float] = {}
+        self._authority_cache_linear: Dict[str, float] = {}
+
+    def _rebuild_cache(self):
+        """Precompute in-degrees and authority scores for sub-millisecond lookups."""
+        if len(self.graph) == 0:
+            self._in_degrees = {}
+            self._max_in_degree = 0
+            self._authority_cache_log = {}
+            self._authority_cache_linear = {}
+            return
+
+        self._in_degrees = dict(self.graph.in_degree())
+        self._max_in_degree = max(self._in_degrees.values()) if self._in_degrees else 0
+        n_nodes = max(1, len(self.graph))
+        log_denom = math.log(1.0 + self._max_in_degree) if self._max_in_degree > 0 else 1.0
+
+        self._authority_cache_log = {}
+        self._authority_cache_linear = {}
+        for nid, deg in self._in_degrees.items():
+            self._authority_cache_linear[nid] = round(deg / n_nodes, 4)
+            if self._max_in_degree > 0:
+                self._authority_cache_log[nid] = round(math.log(1.0 + deg) / log_denom, 4)
+            else:
+                self._authority_cache_log[nid] = 0.0
 
     def build_from_db(self, db: Session):
-        """Populates graph from HistoricalCase records."""
+        """Populates graph from HistoricalCase records and precomputes authority metrics."""
         self.graph.clear()
         cases = db.query(models.HistoricalCase).all()
         for c in cases:
@@ -33,8 +61,6 @@ class LegalCitationGraph:
             )
 
         # Connect citations where historical cases reference each other or shared citations
-        # To establish realistic graph links in the local corpus:
-        # Match citations / doc_url / laws
         all_nodes = list(self.graph.nodes(data=True))
         for i, (id_a, data_a) in enumerate(all_nodes):
             for j, (id_b, data_b) in enumerate(all_nodes):
@@ -47,6 +73,8 @@ class LegalCitationGraph:
                     # Add precedent citation edge
                     if (data_b.get("cited_by", 0) > 5) or (i + j) % 5 == 0:
                         self.graph.add_edge(id_a, id_b, type="cites")
+
+        self._rebuild_cache()
 
     def get_case_citation_subgraph(self, case_id: str, depth: int = 1) -> Dict[str, Any]:
         """Returns node and link data suitable for UI visualization."""
@@ -97,12 +125,46 @@ class LegalCitationGraph:
 
         return {"nodes": nodes, "links": links, "metrics": metrics}
 
-    def get_authority_score(self, case_id: str) -> float:
-        """Computes citation authority using degree / PageRank."""
+    def get_authority_score(
+        self,
+        case_id: str,
+        mode: str = "log",
+        alpha: float = 1.0,
+        anchor_score: Optional[float] = None,
+    ) -> float:
+        """
+        Computes citation authority using precomputed in-degree statistics.
+
+        Logarithmic formulation (Section 4.5):
+            s_degree = log(1 + InDegree(d)) / log(1 + InDegree_max)
+
+        Optional citation anchor context blending:
+            s_cit = alpha * s_degree + (1 - alpha) * s_anchor
+
+        Parameters:
+        -----------
+        case_id      : Historical case identifier
+        mode         : 'log' for logarithmic dampening (default), 'linear' for raw ratio
+        alpha        : Weight on degree centrality vs anchor text [0.0, 1.0] (default 1.0)
+        anchor_score : Optional contextual relevance of citation anchor snippet [0.0, 1.0]
+        """
         if case_id not in self.graph or len(self.graph) == 0:
             return 0.0
-        # In-degree normalized by max nodes
-        return round(self.graph.in_degree(case_id) / max(1, len(self.graph)), 3)
+
+        if not self._authority_cache_log:
+            self._rebuild_cache()
+
+        if mode == "linear":
+            s_degree = self._authority_cache_linear.get(case_id, 0.0)
+        else:
+            s_degree = self._authority_cache_log.get(case_id, 0.0)
+
+        if anchor_score is not None and 0.0 <= alpha < 1.0:
+            clamped_anchor = max(0.0, min(1.0, float(anchor_score)))
+            final_score = alpha * s_degree + (1.0 - alpha) * clamped_anchor
+            return round(max(0.0, min(1.0, final_score)), 4)
+
+        return s_degree
 
 
 _graph_singleton: Optional[LegalCitationGraph] = None

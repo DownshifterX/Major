@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -35,6 +36,17 @@ app.include_router(cases.router)
 app.include_router(documents.router)
 app.include_router(analysis.router)
 app.include_router(historical.router)
+
+# Mount evaluation API (reads pre-generated result files from evaluation/results/)
+try:
+    _EVAL_DIR = Path(__file__).resolve().parents[3] / "evaluation"
+    if str(_EVAL_DIR) not in sys.path:
+        sys.path.insert(0, str(_EVAL_DIR))
+    from eval_router import router as eval_router
+    app.include_router(eval_router)
+except Exception as _eval_err:
+    import warnings
+    warnings.warn(f"Evaluation router not loaded: {_eval_err}")
 
 
 @app.get("/api/health")

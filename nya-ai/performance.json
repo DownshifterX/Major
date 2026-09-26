@@ -1,0 +1,72 @@
+[
+  {
+    "stage": "semantic_retrieval",
+    "n_samples": 2,
+    "mean_ms": 330.88,
+    "median_ms": 330.88,
+    "p95_ms": 313.8,
+    "min_ms": 313.8,
+    "max_ms": 347.97,
+    "percentile_convention": "nearest_rank_order_statistic_k=floor(0.95*N)-1"
+  },
+  {
+    "stage": "bm25_retrieval",
+    "n_samples": 2,
+    "mean_ms": 234.89,
+    "median_ms": 234.89,
+    "p95_ms": 233.29,
+    "min_ms": 233.29,
+    "max_ms": 236.5,
+    "percentile_convention": "nearest_rank_order_statistic_k=floor(0.95*N)-1"
+  },
+  {
+    "stage": "candidate_generation",
+    "n_samples": 2,
+    "mean_ms": 2551.7,
+    "median_ms": 2551.7,
+    "p95_ms": 2496.36,
+    "min_ms": 2496.36,
+    "max_ms": 2607.05,
+    "percentile_convention": "nearest_rank_order_statistic_k=floor(0.95*N)-1"
+  },
+  {
+    "stage": "feature_extraction",
+    "n_samples": 2,
+    "mean_ms": 8.69,
+    "median_ms": 8.69,
+    "p95_ms": 8.37,
+    "min_ms": 8.37,
+    "max_ms": 9.01,
+    "percentile_convention": "nearest_rank_order_statistic_k=floor(0.95*N)-1"
+  },
+  {
+    "stage": "citation_scoring",
+    "n_samples": 60,
+    "mean_ms": 0.0,
+    "median_ms": 0.0,
+    "p95_ms": 0.0,
+    "min_ms": 0.0,
+    "max_ms": 0.0,
+    "percentile_convention": "nearest_rank_order_statistic_k=floor(0.95*N)-1"
+  },
+  {
+    "stage": "reranking",
+    "n_samples": 2,
+    "mean_ms": 6.49,
+    "median_ms": 6.49,
+    "p95_ms": 6.47,
+    "min_ms": 6.47,
+    "max_ms": 6.51,
+    "percentile_convention": "nearest_rank_order_statistic_k=floor(0.95*N)-1"
+  },
+  {
+    "stage": "complete_query_latency",
+    "n_samples": 2,
+    "mean_ms": 2502.28,
+    "median_ms": 2502.28,
+    "p95_ms": 2417.77,
+    "min_ms": 2417.77,
+    "max_ms": 2586.78,
+    "percentile_convention": "nearest_rank_order_statistic_k=floor(0.95*N)-1"
+  }
+]

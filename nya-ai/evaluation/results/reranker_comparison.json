@@ -1,0 +1,60 @@
+{
+  "_metadata": {
+    "evaluation_title": "Nya(AI) 5-System Retrieval & Reranker Comparison",
+    "evaluation_mode": "QUICK",
+    "num_queries": 5,
+    "label_note": "Evaluated against corpus proxy relevance labels with honest proxy disclosures."
+  },
+  "systems": {
+    "A_bm25_only": {
+      "description": "BM25Plus lexical retrieval only",
+      "mrr": 1.0,
+      "precision_at_5": 0.96,
+      "recall_at_5": 0.1693,
+      "recall_at_10": 0.2526,
+      "ndcg_at_5": 0.8329,
+      "ndcg_at_10": 0.7643,
+      "avg_latency_ms": 1877.58
+    },
+    "B_semantic_only": {
+      "description": "Dense embedding semantic similarity only",
+      "mrr": 0.8,
+      "precision_at_5": 0.48,
+      "recall_at_5": 0.0557,
+      "recall_at_10": 0.0721,
+      "ndcg_at_5": 0.359,
+      "ndcg_at_10": 0.3149,
+      "avg_latency_ms": 1298.11
+    },
+    "C_hybrid_bm25_semantic": {
+      "description": "Hybrid retrieval (0.70 Dense + 0.30 BM25+)",
+      "mrr": 1.0,
+      "precision_at_5": 0.92,
+      "recall_at_5": 0.1613,
+      "recall_at_10": 0.3073,
+      "ndcg_at_5": 0.8195,
+      "ndcg_at_10": 0.8277,
+      "avg_latency_ms": 2115.97
+    },
+    "D_fixed_mcda_baseline": {
+      "description": "Fixed six-signal MCDA baseline [0.35, 0.20, 0.20, 0.10, 0.08, 0.07]",
+      "mrr": 1.0,
+      "precision_at_5": 0.96,
+      "recall_at_5": 0.1693,
+      "recall_at_10": 0.3227,
+      "ndcg_at_5": 0.8667,
+      "ndcg_at_10": 0.8663,
+      "avg_latency_ms": 2132.62
+    },
+    "E_learned_reranker": {
+      "description": "Learned six-signal reranker (NDCG@K validation-optimized)",
+      "mrr": 1.0,
+      "precision_at_5": 1.0,
+      "recall_at_5": 0.1773,
+      "recall_at_10": 0.3467,
+      "ndcg_at_5": 0.8667,
+      "ndcg_at_10": 0.8975,
+      "avg_latency_ms": 2127.53
+    }
+  }
+}

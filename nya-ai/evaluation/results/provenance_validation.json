@@ -1,0 +1,84 @@
+{
+  "total_analyses": 12,
+  "total_claims": 36,
+  "supported_claims": 36,
+  "unsupported_claims": 0,
+  "invalid_citations": 0,
+  "missing_sources": 0,
+  "provenance_pass_rate": 1.0,
+  "note": "Provenance validated against actual DB chunk records.",
+  "per_analysis": {
+    "67ce248c65ef": {
+      "analysis_type": "similar_cases",
+      "total_citations": 5,
+      "fully_valid": 5,
+      "provenance_pass_rate": 1.0
+    },
+    "35bd3aa1e9d6": {
+      "analysis_type": "legal_provisions",
+      "total_citations": 5,
+      "fully_valid": 5,
+      "provenance_pass_rate": 1.0
+    },
+    "ffdcee6e7005": {
+      "analysis_type": "prosecution_defence",
+      "total_citations": 5,
+      "fully_valid": 5,
+      "provenance_pass_rate": 1.0
+    },
+    "5faa08c7a5c5": {
+      "analysis_type": "evidence_gaps",
+      "total_citations": 0,
+      "fully_valid": 0,
+      "provenance_pass_rate": 1.0
+    },
+    "de4ab30f636b": {
+      "analysis_type": "contradictions",
+      "total_citations": 0,
+      "fully_valid": 0,
+      "provenance_pass_rate": 1.0
+    },
+    "e12bd431fcd7": {
+      "analysis_type": "similar_cases",
+      "total_citations": 5,
+      "fully_valid": 5,
+      "provenance_pass_rate": 1.0
+    },
+    "8cae23ced944": {
+      "analysis_type": "legal_provisions",
+      "total_citations": 5,
+      "fully_valid": 5,
+      "provenance_pass_rate": 1.0
+    },
+    "657596c63212": {
+      "analysis_type": "prosecution_defence",
+      "total_citations": 5,
+      "fully_valid": 5,
+      "provenance_pass_rate": 1.0
+    },
+    "af9ddd051a54": {
+      "analysis_type": "evidence_gaps",
+      "total_citations": 0,
+      "fully_valid": 0,
+      "provenance_pass_rate": 1.0
+    },
+    "0743b3b8c02b": {
+      "analysis_type": "contradictions",
+      "total_citations": 0,
+      "fully_valid": 0,
+      "provenance_pass_rate": 1.0
+    },
+    "3ebd8585044f": {
+      "analysis_type": "brief",
+      "total_citations": 0,
+      "fully_valid": 0,
+      "provenance_pass_rate": 1.0
+    },
+    "16c30a0a6807": {
+      "analysis_type": "comparison",
+      "total_citations": 6,
+      "fully_valid": 6,
+      "provenance_pass_rate": 1.0
+    }
+  }
+}

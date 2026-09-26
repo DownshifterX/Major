@@ -1,0 +1,121 @@
+{
+  "_note": "[PROXY LABELS]",
+  "_generated": "2026-09-26T02:28:37.821862",
+  "configs": {
+    "config_A_default": {
+      "precision_at_1": 1.0,
+      "precision_at_3": 1.0,
+      "precision_at_5": 0.92,
+      "precision_at_10": 0.915,
+      "recall_at_5": 0.1613,
+      "recall_at_10": 0.2175,
+      "mrr": 1.0,
+      "ndcg_at_5": 0.837,
+      "ndcg_at_10": 0.7204,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "description": "Default weights (current Nya(AI) configuration)",
+      "weights": {
+        "semantic": 0.35,
+        "lexical": 0.2,
+        "statute": 0.2,
+        "issue": 0.1,
+        "citation": 0.08,
+        "court": 0.07
+      }
+    },
+    "config_B_high_semantic": {
+      "precision_at_1": 1.0,
+      "precision_at_3": 1.0,
+      "precision_at_5": 0.92,
+      "precision_at_10": 0.915,
+      "recall_at_5": 0.1613,
+      "recall_at_10": 0.2175,
+      "mrr": 1.0,
+      "ndcg_at_5": 0.837,
+      "ndcg_at_10": 0.7208,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "description": "Increased semantic weight — prioritizes narrative similarity",
+      "weights": {
+        "semantic": 0.55,
+        "lexical": 0.15,
+        "statute": 0.15,
+        "issue": 0.07,
+        "citation": 0.05,
+        "court": 0.03
+      }
+    },
+    "config_C_high_statutory": {
+      "precision_at_1": 1.0,
+      "precision_at_3": 0.9333,
+      "precision_at_5": 0.92,
+      "precision_at_10": 0.9333,
+      "recall_at_5": 0.1613,
+      "recall_at_10": 0.2095,
+      "mrr": 1.0,
+      "ndcg_at_5": 0.8012,
+      "ndcg_at_10": 0.7023,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "description": "Increased statutory weight — prioritizes section/act overlap",
+      "weights": {
+        "semantic": 0.25,
+        "lexical": 0.15,
+        "statute": 0.4,
+        "issue": 0.1,
+        "citation": 0.06,
+        "court": 0.04
+      }
+    },
+    "config_D_high_citation": {
+      "precision_at_1": 1.0,
+      "precision_at_3": 1.0,
+      "precision_at_5": 0.92,
+      "precision_at_10": 0.915,
+      "recall_at_5": 0.1613,
+      "recall_at_10": 0.2175,
+      "mrr": 1.0,
+      "ndcg_at_5": 0.837,
+      "ndcg_at_10": 0.7208,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "description": "Increased citation authority weight — prioritizes cited precedents",
+      "weights": {
+        "semantic": 0.28,
+        "lexical": 0.17,
+        "statute": 0.17,
+        "issue": 0.08,
+        "citation": 0.25,
+        "court": 0.05
+      }
+    },
+    "config_E_balanced": {
+      "precision_at_1": 1.0,
+      "precision_at_3": 0.9333,
+      "precision_at_5": 0.92,
+      "precision_at_10": 0.925,
+      "recall_at_5": 0.1613,
+      "recall_at_10": 0.1935,
+      "mrr": 1.0,
+      "ndcg_at_5": 0.8012,
+      "ndcg_at_10": 0.6588,
+      "hit_rate_at_1": 1.0,
+      "hit_rate_at_5": 1.0,
+      "hit_rate_at_10": 1.0,
+      "description": "Balanced equal weights — each signal contributes equally",
+      "weights": {
+        "semantic": 0.167,
+        "lexical": 0.167,
+        "statute": 0.167,
+        "issue": 0.167,
+        "citation": 0.166,
+        "court": 0.166
+      }
+    }
+  }
+}

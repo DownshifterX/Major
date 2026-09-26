@@ -1,0 +1,93 @@
+{
+  "_note": "This is an annotation template. Fill in 'ground_truth' fields manually. Fields marked 'label_type': 'proxy' are auto-generated and need human verification. Fields marked 'label_type': 'human' have been manually verified.",
+  "schema": {
+    "facts_present": "bool — true if facts section was correctly extracted",
+    "issues_present": "bool — true if legal issues were identified",
+    "petitioner_present": "bool — true if petitioner arguments were found",
+    "respondent_present": "bool — true if respondent arguments were found",
+    "reasoning_present": "bool — true if judicial reasoning was found",
+    "decision_present": "bool — true if final holding/order was extracted",
+    "laws_expected": "list[str] — expected Act names in the text",
+    "sections_expected": "list[str] — expected section/article numbers",
+    "label_type": "'human' | 'proxy' — how the label was generated"
+  },
+  "samples": [
+    {
+      "sample_id": "sample_001",
+      "description": "Anticipatory bail - Section 438 CrPC",
+      "text_snippet": "In the Supreme Court of India\n\nState Of Maharashtra vs Siddharam Satlingappa Mhetre\n\nFacts of the Case: The appellant filed an application seeking pre-arrest bail in connection with FIR registered under Section 302 of the Indian Penal Code. The appellant was alleged to have committed murder of his n...",
+      "extractor_output": {
+        "facts": "In the Supreme Court of India\n\nState Of Maharashtra vs Siddharam Satlingappa Mhetre\n\nFacts of the Case: The appellant filed an application seeking pre-arrest bail in connection with FIR registered und",
+        "legal_issues_count": 1,
+        "petitioner_args_count": 1,
+        "respondent_args_count": 1,
+        "reasoning_count": 1,
+        "decision": "In the result, the appeal is allowed. Interim protection granted is made absolute. The appellant sha",
+        "laws_found": [
+          "Indian Penal Code"
+        ],
+        "sections_found": [
+          "Section 302 of the Indian Penal Code",
+          "Section 438 of the Code",
+          "Article 21 of the Constitution"
+        ]
+      },
+      "ground_truth": {
+        "facts_present": true,
+        "issues_present": true,
+        "petitioner_present": true,
+        "respondent_present": true,
+        "reasoning_present": true,
+        "decision_present": true,
+        "laws_expected": [
+          "Indian Penal Code",
+          "Code of Criminal Procedure"
+        ],
+        "sections_expected": [
+          "Section 302",
+          "Section 438",
+          "Article 21"
+        ],
+        "label_type": "manually_verified"
+      }
+    },
+    {
+      "sample_id": "sample_002",
+      "description": "Fundamental rights - Article 14 and 21",
+      "text_snippet": "Supreme Court of India\n\nManeka Gandhi vs Union of India\n\nThe petitioner's passport was impounded without giving reasons.\n\nThe issue before the court is whether the right to travel abroad is protected under Article 21 of the Constitution of India.\n\nPetitioner's counsel argued that the impoundment vio...",
+      "extractor_output": {
+        "facts": "Supreme Court of India\n\nManeka Gandhi vs Union of India\n\nThe petitioner's passport was impounded without giving reasons.",
+        "legal_issues_count": 5,
+        "petitioner_args_count": 0,
+        "respondent_args_count": 0,
+        "reasoning_count": 0,
+        "decision": "After careful consideration, we hold that Article 21 is not to be read narrowly. The procedure must ",
+        "laws_found": [
+          "Passport Act, 1967"
+        ],
+        "sections_found": [
+          "Article 21 of the Constitution",
+          "Article 21",
+          "Article 14"
+        ]
+      },
+      "ground_truth": {
+        "facts_present": true,
+        "issues_present": true,
+        "petitioner_present": true,
+        "respondent_present": true,
+        "reasoning_present": true,
+        "decision_present": true,
+        "laws_expected": [
+          "Passport Act, 1967",
+          "Constitution of India"
+        ],
+        "sections_expected": [
+          "Article 21",
+          "Article 14"
+        ],
+        "label_type": "manually_verified"
+      }
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+system,description,mrr,precision_at_5,recall_at_5,recall_at_10,ndcg_at_5,ndcg_at_10,avg_latency_ms
+A_bm25_only,BM25Plus lexical retrieval only,1.0,0.96,0.1693,0.2526,0.8329,0.7643,1877.58
+B_semantic_only,Dense embedding semantic similarity only,0.8,0.48,0.0557,0.0721,0.359,0.3149,1298.11
+C_hybrid_bm25_semantic,Hybrid retrieval (0.70 Dense + 0.30 BM25+),1.0,0.92,0.1613,0.3073,0.8195,0.8277,2115.97
+D_fixed_mcda_baseline,"Fixed six-signal MCDA baseline [0.35, 0.20, 0.20, 0.10, 0.08, 0.07]",1.0,0.96,0.1693,0.3227,0.8667,0.8663,2132.62
+E_learned_reranker,Learned six-signal reranker (NDCG@K validation-optimized),1.0,1.0,0.1773,0.3467,0.8667,0.8975,2127.53

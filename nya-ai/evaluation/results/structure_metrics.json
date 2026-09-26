@@ -1,0 +1,54 @@
+{
+  "aggregate": {
+    "avg_field_accuracy": 0.75,
+    "avg_laws_f1": 0.667,
+    "avg_sections_f1": 0.9,
+    "avg_laws_recall": 0.5,
+    "avg_sections_recall": 1.0,
+    "n_samples": 2,
+    "label_source": "manually_verified_samples",
+    "note": "Metrics computed on 2 manually-verified sample texts. For a statistically reliable benchmark, annotate additional cases in evaluation/structure_annotations.json and re-run."
+  },
+  "per_sample": [
+    {
+      "sample_id": "sample_001",
+      "description": "Anticipatory bail - Section 438 CrPC",
+      "label_type": "manually_verified",
+      "field_checks": {
+        "facts_detected": true,
+        "issues_detected": true,
+        "petitioner_detected": true,
+        "respondent_detected": true,
+        "reasoning_detected": true,
+        "decision_detected": true
+      },
+      "field_accuracy": 1.0,
+      "laws_precision": 1.0,
+      "laws_recall": 0.5,
+      "laws_f1": 0.667,
+      "sections_precision": 1.0,
+      "sections_recall": 1.0,
+      "sections_f1": 1.0
+    },
+    {
+      "sample_id": "sample_002",
+      "description": "Fundamental rights - Article 14 and 21",
+      "label_type": "manually_verified",
+      "field_checks": {
+        "facts_detected": true,
+        "issues_detected": true,
+        "petitioner_detected": false,
+        "respondent_detected": false,
+        "reasoning_detected": false,
+        "decision_detected": true
+      },
+      "field_accuracy": 0.5,
+      "laws_precision": 1.0,
+      "laws_recall": 0.5,
+      "laws_f1": 0.667,
+      "sections_precision": 0.667,
+      "sections_recall": 1.0,
+      "sections_f1": 0.8
+    }
+  ]
+}

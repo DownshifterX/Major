@@ -1,0 +1,12 @@
+{
+  "study_id": "case_40406083",
+  "analysis_id": "7aa750e39e32",
+  "total_citations": 20,
+  "fully_valid": 20,
+  "chunk_missing": 0,
+  "case_missing": 0,
+  "offset_invalid": 0,
+  "excerpt_mismatch": 0,
+  "provenance_pass_rate": 1.0,
+  "note": "Provenance measured against actual DB records. NOT from prompt instructions alone."
+}

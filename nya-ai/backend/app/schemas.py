@@ -70,17 +70,17 @@ class CaseOut(BaseModel):
     date_of_filing: Optional[str]
     case_type: Optional[str]
     legal_domain: Optional[str]
-    parties: Optional[List[Dict[str, Any]]]
-    provisions: Optional[List[Dict[str, Any]]]
-    facts: str
-    issues: str
-    arguments: Dict[str, Any]
-    evidence: List[Dict[str, Any]]
-    procedural_history: str
-    judgment: str
-    timeline: Optional[List[Dict[str, Any]]]
-    status: str
-    error_message: Optional[str]
+    parties: Optional[List[Any]] = None
+    provisions: Optional[List[Any]] = None
+    facts: Optional[str] = ""
+    issues: Optional[str] = ""
+    arguments: Optional[Any] = {}
+    evidence: Optional[Any] = []
+    procedural_history: Optional[str] = ""
+    judgment: Optional[str] = ""
+    timeline: Optional[List[Dict[str, Any]]] = []
+    status: Optional[str] = "draft"
+    error_message: Optional[str] = None
 
     class Config:
         from_attributes = True

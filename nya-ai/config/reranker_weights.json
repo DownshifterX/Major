@@ -1,0 +1,47 @@
+{
+  "_description": "Nya(AI) 6-Signal Precedent Reranker Weights Configuration",
+  "_methodology": "Constrained Linear Additive Utility Model: S(q,d) = sum_j w_j * s_hat_j(q,d) s.t. w_j >= 0, sum w_j = 1",
+  "active_mode": "fixed",
+  "fixed_baseline": {
+    "_label": "Fixed-weight MCDA baseline",
+    "_status": "Engineering baseline \u2014 initial literature-motivated heuristic prior to empirical optimization",
+    "weights": {
+      "semantic": 0.35,
+      "lexical": 0.2,
+      "statute": 0.2,
+      "issue": 0.1,
+      "citation": 0.08,
+      "court": 0.07
+    }
+  },
+  "learned_weights": {
+    "_label": "Validation-Optimized Weights (NDCG@5 maximization)",
+    "_validation_ndcg": 0.8613,
+    "_status": "Learned via constrained optimization on validation relevance judgments",
+    "weights": {
+      "semantic": 0.298129,
+      "lexical": 0.224828,
+      "statute": 0.010378,
+      "issue": 0.046015,
+      "citation": 0.012871,
+      "court": 0.407779
+    }
+  },
+  "court_hierarchy_weights": {
+    "_basis": "Engineering encoding of Article 141 Constitution of India (Supreme Court binding precedent)",
+    "supreme court": 1.0,
+    "high court": 0.75,
+    "district court": 0.5,
+    "tribunal": 0.4,
+    "default": 0.5
+  },
+  "citation_config": {
+    "normalization": "logarithmic",
+    "alpha_degree": 1.0,
+    "_note": "s_cit = alpha * [log(1+deg)/log(1+max_deg)] + (1-alpha) * s_anchor"
+  },
+  "hard_constraints": {
+    "filter_overruled": true,
+    "_note": "Hard exclusion filter: Eligible(d) = 0 if explicitly overruled, 1 otherwise."
+  }
+}
