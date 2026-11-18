@@ -1,29 +1,40 @@
-# Datasets & Large Data
+# Environments & Credentials
+.env
+.env.*
+!.env.example
+
+# Python Caches & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+env/
+venv/
+
+# Large Datasets & Binary Corpora
+data/raw/*.parquet
+data/raw/*.xlsx
+data/raw/*.csv
+data/*.zip
+*.zip
 dataset - hugging face/*.parquet
 dataset - hugging face/*.xlsx
 dataset - hugging face/*.csv
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-.venv/
-env/
-venv/
+# Databases & Runtime Artifacts
 *.db
+*.db*
 *.sqlite3
-
-# Uploads and temporary assets
-nya-ai/backend/data/nya.db
+backend/data/*.db*
+backend/data/*.pkl
+backend/data/uploads/*
+nya-ai/backend/data/*.db*
+nya-ai/backend/data/*.pkl
 nya-ai/backend/data/uploads/*
-*.zip
+download.log
 
-# Environment & credentials
-.env
-.env.*
-
-# OS files
+# Frontend & OS
+node_modules/
 .DS_Store
 Thumbs.db
