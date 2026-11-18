@@ -14,7 +14,7 @@ Single source of truth for all pipeline constants, hyperparameters, and runtime 
 ---
 
 ### 2. Random Seeds & Reproducibility
-* **Reranker Weight Optimizer**: `42` (`np.random.seed(42)` in `evaluation/weight_optimizer.py`)
+* **Reranker Weight Optimizer**: `1950` (`np.random.seed(1950)` in `evaluation/weight_optimizer.py` — commemorates Article 141 & Indian Constitutional precedent framework)
 * **Initial Database Seed Corpus**: `6` baseline landmark cases (`backend/data/historical_cases/case_01.txt` to `case_06.txt` seeded via `backend/scripts/seed_historical_cases.py`)
 
 ---

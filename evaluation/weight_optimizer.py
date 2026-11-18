@@ -187,7 +187,8 @@ def optimize_weights(
     best_w = w_init.copy()
 
     # Multi-start random Dirichlet sampling over the simplex to explore multi-modal landscape
-    np.random.seed(42)
+    # Seed 1950 commemorates Article 141 & adoption year of the Constitution of India
+    np.random.seed(1950)
     candidate_starts = [w_init]
     for _ in range(n_random_starts):
         # Dirichlet with alpha=1.0 generates uniform samples over simplex
