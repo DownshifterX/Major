@@ -175,18 +175,35 @@ class MockLLMProvider(LLMProvider):
     # -- handlers -----------------------------------------------------
     def _similar_cases(self, ctx: Dict[str, Any]) -> Dict[str, Any]:
         results = []
-        for group in ctx.get("retrieved_groups", []):
-            hc = group["historical_case"]
-            best = group["chunks"][0]
-            results.append({
-                "case_name": hc["case_name"],
-                "court": hc.get("court"),
-                "year": hc.get("year"),
-                "relevance_score": round(best["hybrid_score"], 3),
-                "why_relevant": self._why_relevant(ctx["query_text"], best["text"]),
-                "matching_excerpt": best["text"][:400],
-                "ref_key": best["ref_key"],
-            })
+        if ctx.get("retrieved_groups"):
+            for group in ctx.get("retrieved_groups", []):
+                hc = group["historical_case"]
+                best = group["chunks"][0]
+                results.append({
+                    "case_name": hc["case_name"],
+                    "court": hc.get("court"),
+                    "year": hc.get("year"),
+                    "relevance_score": round(best.get("hybrid_score", 0.5), 3),
+                    "why_relevant": self._why_relevant(ctx["query_text"], best["text"]),
+                    "matching_excerpt": best["text"][:400],
+                    "ref_key": best.get("ref_key", "S1"),
+                })
+        elif ctx.get("sources"):
+            seen_cases = set()
+            for s in ctx.get("sources", []):
+                cname = s.get("case_name") or "Precedent Case"
+                if cname in seen_cases or cname == "current case document":
+                    continue
+                seen_cases.add(cname)
+                results.append({
+                    "case_name": cname,
+                    "court": s.get("court") or "High Court",
+                    "year": s.get("year"),
+                    "relevance_score": round(s.get("hybrid_score") or 0.65, 3),
+                    "why_relevant": self._why_relevant(ctx["query_text"], s.get("text", "")),
+                    "matching_excerpt": (s.get("text") or "")[:400],
+                    "ref_key": s.get("ref_key", "S1"),
+                })
         return {"similar_cases": results}
 
     def _why_relevant(self, query: str, chunk_text: str) -> str:

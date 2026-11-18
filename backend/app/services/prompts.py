@@ -37,17 +37,21 @@ def _sources_block(sources: list) -> str:
 def similar_cases_prompt(query_text: str, sources: list) -> str:
     return f"""{SYSTEM_RULES}
 
-TASK: Identify which of the SOURCES below (each is a chunk from a historical
-case) are genuinely relevant to the CURRENT CASE description, and explain why.
+TASK: Review the retrieved precedent SOURCES below. Select up to 5 cases that share relevant legal issues, land acquisition contexts, compensation principles, or statutory provisions with the CURRENT CASE.
+For each selected precedent, provide:
+1. case_name: The name of the precedent case.
+2. why_relevant: Explanation of why this precedent is relevant to the legal or factual issues of the current case, citing its [ref_key].
+3. matching_excerpt: A concise excerpt from the source text demonstrating the similarity.
+4. ref_key: The reference key (e.g. S1, S2).
 
-CURRENT CASE DESCRIPTION:
-{query_text}
+CURRENT CASE:
+{query_text[:1200]}
 
-SOURCES:
+RETRIEVED PRECEDENTS:
 {_sources_block(sources)}
 
-Respond as JSON: {{"similar_cases": [{{"case_name": str, "why_relevant": str,
-"matching_excerpt": str, "ref_key": str}}]}}"""
+Respond STRICTLY with valid JSON in this schema:
+{{"similar_cases": [{{"case_name": "Case Title", "why_relevant": "Explanation with [S1]", "matching_excerpt": "Relevant quote", "ref_key": "S1"}}]}}"""
 
 
 def legal_provisions_prompt(case_text: str, sources: list) -> str:
