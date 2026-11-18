@@ -162,10 +162,18 @@ def run_prosecution_defence(db: Session, case: models.Case) -> Dict[str, Any]:
     retrieved = retrieve_historical_chunks(db, query_text, top_k=8)
     sources = _retrieved_to_sources(db, retrieved)
 
+    # Prefer structured arguments dict if present, otherwise fallback to arguments_text
+    args_content = case.arguments if case.arguments else (case.arguments_text or "")
+    if isinstance(args_content, dict):
+        args_str = "\n".join([f"Petitioner: {p}" for p in args_content.get("petitioner", [])] +
+                             [f"Respondent: {r}" for r in args_content.get("respondent", [])])
+    else:
+        args_str = str(args_content)
+
     provider = get_llm_provider()
-    prompt = prompts.prosecution_defence_prompt(query_text, case.arguments_text or "", sources)
+    prompt = prompts.prosecution_defence_prompt(query_text, args_str, sources)
     result = provider.generate_structured(prompt, {
-        "case_arguments": case.arguments_text, "sources": sources,
+        "case_arguments": args_content, "sources": sources,
     }, analysis_type="prosecution_defence")
     analysis = _save_analysis(db, case.id, "prosecution_defence", result, provider.__class__.__name__, sources)
     return {"analysis_id": analysis.id, **result, "citations": _citations_payload(analysis)}
