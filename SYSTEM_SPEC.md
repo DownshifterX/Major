@@ -52,8 +52,9 @@ Single source of truth for all pipeline constants, hyperparameters, and runtime 
 
 ---
 
-### 5. Runtime Environment (`.env`)
+### 6. Runtime Environment (`.env`)
 * **Host / Port**: `127.0.0.1:8000`
 * **Database**: SQLite (`backend/data/nya.db`)
 * **Corpus cache**: Pickled vector matrix (`backend/data/corpus_cache.pkl`)
-* **LLM Provider**: `mock` (dev/testing) | `gemini` / `groq` (production)
+* **LLM Provider**: `mock` (dev/testing) | `gemini` (`gemini-1.5-flash`) | `anthropic` (`claude-sonnet-4-6`)
+* **Frontend**: Vanilla JS SPA served by FastAPI on `/`

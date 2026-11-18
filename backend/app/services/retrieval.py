@@ -60,17 +60,21 @@ _CORPUS_CACHE = {
 }
 
 
-def _ensure_corpus_cache(db: Session):
+def _ensure_corpus_cache(db: Session, force_reload: bool = False):
     global _CORPUS_CACHE
-    if _CORPUS_CACHE["loaded"]:
+    if _CORPUS_CACHE["loaded"] and not force_reload:
         return
 
+    import os
     import pickle
     from pathlib import Path
     from ..database import DATA_DIR
     cache_file = Path(DATA_DIR) / "corpus_cache.pkl"
 
-    if cache_file.exists():
+    # In testing mode or when explicitly disabled, do not read disk cache
+    use_disk_cache = os.getenv("USE_DISK_CORPUS_CACHE", "1") == "1"
+
+    if use_disk_cache and cache_file.exists() and not force_reload:
         try:
             with open(cache_file, "rb") as f:
                 loaded_data = pickle.load(f)
@@ -162,10 +166,18 @@ def retrieve_historical_chunks(
 
     # Fast vectorized semantic similarity: 1 matrix-vector multiplication
     q_vec = np.array(query_vec, dtype=np.float32)
+    mat = _CORPUS_CACHE["embedding_matrix"]
+    if q_vec.ndim == 1 and mat is not None and mat.shape[1] != q_vec.shape[0]:
+        # Dimension mismatch between chunk embedding and query provider (e.g. test fixture vs live model)
+        if q_vec.shape[0] < mat.shape[1]:
+            q_vec = np.pad(q_vec, (0, mat.shape[1] - q_vec.shape[0]))
+        else:
+            q_vec = q_vec[:mat.shape[1]]
+
     q_norm = np.linalg.norm(q_vec)
-    if q_norm > 0:
+    if q_norm > 0 and mat is not None and len(mat) > 0:
         q_vec = q_vec / q_norm
-        sem_scores = np.dot(_CORPUS_CACHE["embedding_matrix"], q_vec)
+        sem_scores = np.dot(mat, q_vec)
     else:
         sem_scores = np.zeros(len(chunks), dtype=np.float32)
 

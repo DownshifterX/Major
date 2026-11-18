@@ -68,18 +68,22 @@ class SentenceTransformerEmbeddingProvider(EmbeddingProvider):
 
 
 _provider_singleton: EmbeddingProvider | None = None
+_provider_singleton_name: str | None = None
 
 
 def get_embedding_provider() -> EmbeddingProvider:
-    global _provider_singleton
-    if _provider_singleton is None:
-        name = os.getenv("EMBEDDING_PROVIDER", "sentence-transformers")
+    global _provider_singleton, _provider_singleton_name
+    name = os.getenv("EMBEDDING_PROVIDER", "sentence-transformers")
+    dim = int(os.getenv("EMBEDDING_DIM", "512"))
+    key = f"{name}_{dim}"
+    if _provider_singleton is None or _provider_singleton_name != key:
         if name == "local":
-            _provider_singleton = LocalHashingEmbeddingProvider()
+            _provider_singleton = LocalHashingEmbeddingProvider(n_features=dim)
         elif name == "sentence-transformers":
             _provider_singleton = SentenceTransformerEmbeddingProvider()
         else:
             raise ValueError(f"Unknown EMBEDDING_PROVIDER '{name}'")
+        _provider_singleton_name = key
     return _provider_singleton
 
 

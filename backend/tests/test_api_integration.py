@@ -6,8 +6,9 @@ import os
 import sys
 import pytest
 
-os.environ.setdefault("EMBEDDING_PROVIDER", "local")
-os.environ.setdefault("LLM_PROVIDER", "mock")
+os.environ["EMBEDDING_PROVIDER"] = "local"
+os.environ["LLM_PROVIDER"] = "mock"
+os.environ["USE_DISK_CORPUS_CACHE"] = "0"
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -43,6 +44,15 @@ app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture(autouse=True)
 def setup_db():
+    from app.services import retrieval
+    retrieval._CORPUS_CACHE = {
+        "loaded": False,
+        "chunks": [],
+        "tokenized_corpus": [],
+        "bm25": None,
+        "embedding_matrix": None,
+        "norm_texts": [],
+    }
     Base.metadata.create_all(bind=test_engine)
     yield
     Base.metadata.drop_all(bind=test_engine)

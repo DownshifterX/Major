@@ -27,7 +27,7 @@ def create_case(payload: schemas.CaseCreate, db: Session = Depends(get_db)):
         date_of_filing=payload.date_of_filing,
         case_type=payload.case_type,
         legal_domain=payload.legal_domain,
-        parties=[p.dict() for p in (payload.parties or [])],
+        parties=[p.model_dump() for p in (payload.parties or [])],
         provisions=payload.provisions or [],
         facts=payload.facts or "",
         issues=payload.issues or payload.charges_issues or "",
@@ -139,9 +139,9 @@ def update_case(case_id: str, payload: schemas.CaseUpdate, db: Session = Depends
     case = db.get(models.Case, case_id)
     if not case:
         raise HTTPException(404, "Case not found")
-    data = payload.dict(exclude_unset=True)
+    data = payload.model_dump(exclude_unset=True)
     if "parties" in data and data["parties"] is not None:
-        data["parties"] = [p if isinstance(p, dict) else p.dict() for p in data["parties"]]
+        data["parties"] = [p if isinstance(p, dict) else p.model_dump() for p in data["parties"]]
     for k, v in data.items():
         setattr(case, k, v)
     db.commit()

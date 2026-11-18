@@ -45,6 +45,50 @@ class LLMProvider(ABC):
 # ---------------------------------------------------------------------------
 # Real provider
 # ---------------------------------------------------------------------------
+class GeminiProvider(LLMProvider):
+    """Google Gemini API provider using official REST endpoint."""
+
+    def __init__(self):
+        self.api_key = os.getenv("GEMINI_API_KEY")
+        self.model = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+        if not self.api_key:
+            raise RuntimeError("GEMINI_API_KEY not set but LLM_PROVIDER=gemini")
+
+    def generate(self, prompt: str) -> str:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent?key={self.api_key}"
+        resp = httpx.post(
+            url,
+            headers={"Content-Type": "application/json"},
+            json={
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.2},
+            },
+            timeout=60,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        candidates = data.get("candidates", [])
+        if candidates and "content" in candidates[0]:
+            parts = candidates[0]["content"].get("parts", [])
+            return "".join(p.get("text", "") for p in parts)
+        return ""
+
+    def generate_structured(self, prompt: str, context: Dict[str, Any], analysis_type: str) -> Dict[str, Any]:
+        full_prompt = (
+            prompt
+            + "\n\nRespond with STRICT JSON only. No markdown fences, no preamble, no commentary."
+        )
+        raw = self.generate(full_prompt)
+        cleaned = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.MULTILINE).strip()
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            return {
+                "error": "The model did not return valid JSON.",
+                "raw_output": raw[:2000],
+            }
+
+
 class AnthropicProvider(LLMProvider):
     def __init__(self):
         self.api_key = os.getenv("ANTHROPIC_API_KEY")
@@ -357,5 +401,10 @@ def get_llm_provider() -> LLMProvider:
     global _provider_singleton
     if _provider_singleton is None:
         name = os.getenv("LLM_PROVIDER", "mock")
-        _provider_singleton = AnthropicProvider() if name == "anthropic" else MockLLMProvider()
+        if name == "gemini":
+            _provider_singleton = GeminiProvider()
+        elif name == "anthropic":
+            _provider_singleton = AnthropicProvider()
+        else:
+            _provider_singleton = MockLLMProvider()
     return _provider_singleton

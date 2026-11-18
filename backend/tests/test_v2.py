@@ -26,12 +26,22 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture()
 def db():
+    from app.services import retrieval
+    retrieval._CORPUS_CACHE = {
+        "loaded": False,
+        "chunks": [],
+        "tokenized_corpus": [],
+        "bm25": None,
+        "embedding_matrix": None,
+        "norm_texts": [],
+    }
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     
     # We must ensure we're using mock models for testing
     os.environ["EMBEDDING_PROVIDER"] = "local"
     os.environ["LLM_PROVIDER"] = "mock"
+    os.environ["USE_DISK_CORPUS_CACHE"] = "0"
     
     yield db
     

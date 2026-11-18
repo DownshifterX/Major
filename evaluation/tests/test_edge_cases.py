@@ -54,6 +54,15 @@ def test_engine():
 
 @pytest.fixture()
 def db(test_engine):
+    from app.services import retrieval
+    retrieval._CORPUS_CACHE = {
+        "loaded": False,
+        "chunks": [],
+        "tokenized_corpus": [],
+        "bm25": None,
+        "embedding_matrix": None,
+        "norm_texts": [],
+    }
     Session = sessionmaker(bind=test_engine)
     session = Session()
     Base.metadata.create_all(bind=test_engine)
