@@ -25,7 +25,10 @@ BOILERPLATE_PATTERNS = [
     r"^\s*Date:\s*\d{4}\.\d{2}\.\d{2}.*",
     r"^\s*Reason:\s*$",
     r".*Page\s+\d+\s+of\s+\d+\s*$",
+    r"^\s*\d+\s+of\s+\d+\s*$",
     r"^\s*\d+\s*/\s*\d+\s*$",
+    r":::\s*Downloaded on\b.*",
+    r".*RFA No\.\s*\d+.*connected cases.*",
 ]
 
 COMPILED_BOILERPLATE = [re.compile(p, re.IGNORECASE) for p in BOILERPLATE_PATTERNS]
