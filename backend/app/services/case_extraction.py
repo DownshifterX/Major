@@ -40,7 +40,7 @@ DOCUMENT TEXT:
 
 def extract_case_profile(db: Session, case_id: str, document_text: str):
     """Automatically extracts structured case information from the uploaded document."""
-    case = db.query(models.Case).get(case_id)
+    case = db.get(models.Case, case_id)
     if not case:
         return
     

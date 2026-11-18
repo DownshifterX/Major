@@ -9,8 +9,8 @@ from . import analysis_service as svc
 def process_document_workflow(case_id: str, document_id: str):
     db: Session = SessionLocal()
     try:
-        case = db.query(models.Case).get(case_id)
-        document = db.query(models.Document).get(document_id)
+        case = db.get(models.Case, case_id)
+        document = db.get(models.Document, document_id)
         
         if not case or not document:
             return
@@ -36,7 +36,7 @@ def process_document_workflow(case_id: str, document_id: str):
         db.commit()
     except Exception as e:
         db.rollback()
-        case = db.query(models.Case).get(case_id)
+        case = db.get(models.Case, case_id)
         if case:
             case.status = "error"
             case.error_message = f"Workflow failed: {str(e)}\n{traceback.format_exc()}"

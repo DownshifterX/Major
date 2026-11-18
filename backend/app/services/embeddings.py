@@ -49,24 +49,6 @@ class LocalHashingEmbeddingProvider(EmbeddingProvider):
         return matrix.toarray().astype(float).tolist()
 
 
-class OpenAIEmbeddingProvider(EmbeddingProvider):
-    """Placeholder for a real semantic embedding API.
-
-    Not wired to a live network call in this PoC sandbox — implement the
-    HTTP call to your embedding provider of choice here when you have API
-    access, keeping the same embed() signature.
-    """
-
-    def __init__(self):
-        raise NotImplementedError(
-            "OpenAIEmbeddingProvider is a stub. Implement the API call and "
-            "set EMBEDDING_PROVIDER=openai once you have network + API key access."
-        )
-
-    def embed(self, texts: List[str]) -> List[List[float]]:
-        raise NotImplementedError
-
-
 class SentenceTransformerEmbeddingProvider(EmbeddingProvider):
     """Real semantic embedding using BERT-family models (sentence-transformers)."""
 
@@ -81,7 +63,6 @@ class SentenceTransformerEmbeddingProvider(EmbeddingProvider):
     def embed(self, texts: List[str]) -> List[List[float]]:
         if not texts:
             return []
-        # encode returns a numpy array
         embeddings = self.model.encode(texts, convert_to_numpy=True)
         return embeddings.astype(float).tolist()
 
@@ -97,8 +78,6 @@ def get_embedding_provider() -> EmbeddingProvider:
             _provider_singleton = LocalHashingEmbeddingProvider()
         elif name == "sentence-transformers":
             _provider_singleton = SentenceTransformerEmbeddingProvider()
-        elif name == "openai":
-            _provider_singleton = OpenAIEmbeddingProvider()
         else:
             raise ValueError(f"Unknown EMBEDDING_PROVIDER '{name}'")
     return _provider_singleton

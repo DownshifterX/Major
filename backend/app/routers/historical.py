@@ -40,7 +40,7 @@ def list_historical_cases(db: Session = Depends(get_db)):
 
 @router.get("/{historical_case_id}")
 def get_historical_case(historical_case_id: str, db: Session = Depends(get_db)):
-    hc = db.query(models.HistoricalCase).get(historical_case_id)
+    hc = db.get(models.HistoricalCase, historical_case_id)
     if not hc:
         raise HTTPException(404, "Historical case not found")
     return {

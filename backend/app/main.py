@@ -94,7 +94,7 @@ def search_cases(q: str, limit: int = 10, db: Session = Depends(get_db)):
         chunk = r.chunk
         hc = None
         if chunk.historical_case_id:
-            hc = db.query(_models.HistoricalCase).get(chunk.historical_case_id)
+            hc = db.get(_models.HistoricalCase, chunk.historical_case_id)
         output.append({
             "historical_case_id": chunk.historical_case_id,
             "case_name": hc.case_name if hc else "Precedent",

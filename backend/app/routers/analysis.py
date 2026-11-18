@@ -9,7 +9,7 @@ router = APIRouter(prefix="/cases", tags=["analysis"])
 
 
 def _get_case(db: Session, case_id: str) -> models.Case:
-    case = db.query(models.Case).get(case_id)
+    case = db.get(models.Case, case_id)
     if not case:
         raise HTTPException(404, "Case not found")
     return case

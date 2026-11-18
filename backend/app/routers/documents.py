@@ -20,7 +20,7 @@ async def upload_document(
     doc_type: str = Form("general"),
     db: Session = Depends(get_db),
 ):
-    case = db.query(models.Case).get(case_id)
+    case = db.get(models.Case, case_id)
     if not case:
         raise HTTPException(404, "Case not found")
 
@@ -82,7 +82,7 @@ def delete_document(case_id: str, document_id: str, db: Session = Depends(get_db
 
 @router.post("/{case_id}/index")
 def reindex_case(case_id: str, db: Session = Depends(get_db)):
-    case = db.query(models.Case).get(case_id)
+    case = db.get(models.Case, case_id)
     if not case:
         raise HTTPException(404, "Case not found")
     docs = db.query(models.Document).filter(models.Document.case_id == case_id).all()

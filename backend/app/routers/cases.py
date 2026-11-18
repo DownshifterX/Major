@@ -128,7 +128,7 @@ def list_cases(db: Session = Depends(get_db)):
 
 @router.get("/{case_id}", response_model=schemas.CaseOut)
 def get_case(case_id: str, db: Session = Depends(get_db)):
-    case = db.query(models.Case).get(case_id)
+    case = db.get(models.Case, case_id)
     if not case:
         raise HTTPException(404, "Case not found")
     return case
@@ -136,7 +136,7 @@ def get_case(case_id: str, db: Session = Depends(get_db)):
 
 @router.patch("/{case_id}", response_model=schemas.CaseOut)
 def update_case(case_id: str, payload: schemas.CaseUpdate, db: Session = Depends(get_db)):
-    case = db.query(models.Case).get(case_id)
+    case = db.get(models.Case, case_id)
     if not case:
         raise HTTPException(404, "Case not found")
     data = payload.dict(exclude_unset=True)
@@ -151,7 +151,7 @@ def update_case(case_id: str, payload: schemas.CaseUpdate, db: Session = Depends
 
 @router.delete("/{case_id}")
 def delete_case(case_id: str, db: Session = Depends(get_db)):
-    case = db.query(models.Case).get(case_id)
+    case = db.get(models.Case, case_id)
     if not case:
         raise HTTPException(404, "Case not found")
     db.delete(case)
@@ -161,7 +161,7 @@ def delete_case(case_id: str, db: Session = Depends(get_db)):
 
 @router.get("/{case_id}/dashboard-stats")
 def dashboard_stats(case_id: str, db: Session = Depends(get_db)):
-    case = db.query(models.Case).get(case_id)
+    case = db.get(models.Case, case_id)
     if not case:
         raise HTTPException(404, "Case not found")
     return {
@@ -179,7 +179,7 @@ def case_citation_graph(case_id: str, db: Session = Depends(get_db)):
     from ..services.retrieval import retrieve_historical_chunks
     graph = get_citation_graph(db)
     
-    case = db.query(models.Case).get(case_id)
+    case = db.get(models.Case, case_id)
     target_id = None
     if case:
         query_text = " ".join(filter(None, [case.facts or "", case.issues or "", case.case_type or ""]))

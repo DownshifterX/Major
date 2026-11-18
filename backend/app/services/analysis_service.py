@@ -198,7 +198,7 @@ def run_contradictions(db: Session, case: models.Case) -> Dict[str, Any]:
 
 
 def run_comparison(db: Session, case: models.Case, historical_case_id: str) -> Dict[str, Any]:
-    hc = db.query(models.HistoricalCase).get(historical_case_id)
+    hc = db.get(models.HistoricalCase, historical_case_id)
     if hc is None:
         raise ValueError("Historical case not found")
 
