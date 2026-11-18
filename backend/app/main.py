@@ -60,7 +60,8 @@ app.include_router(historical.router)
 
 # Mount evaluation API (reads pre-generated result files from evaluation/results/)
 try:
-    _EVAL_DIR = Path(__file__).resolve().parents[3] / "evaluation"
+    _ROOT_DIR = Path(__file__).resolve().parents[2]
+    _EVAL_DIR = _ROOT_DIR / "evaluation"
     if str(_EVAL_DIR) not in sys.path:
         sys.path.insert(0, str(_EVAL_DIR))
     from eval_router import router as eval_router
