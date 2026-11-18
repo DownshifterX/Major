@@ -12,7 +12,7 @@ def gen_id() -> str:
 
 
 def now() -> dt.datetime:
-    return dt.datetime.utcnow()
+    return dt.datetime.now(dt.timezone.utc)
 
 
 class Case(Base):
