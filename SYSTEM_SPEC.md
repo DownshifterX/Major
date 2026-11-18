@@ -13,7 +13,13 @@ Single source of truth for all pipeline constants, hyperparameters, and runtime 
 
 ---
 
-### 2. Embeddings & Semantic Search
+### 2. Random Seeds & Reproducibility
+* **Reranker Weight Optimizer**: `42` (`np.random.seed(42)` in `evaluation/weight_optimizer.py`)
+* **Initial Database Seed Corpus**: `6` baseline landmark cases (`backend/data/historical_cases/case_01.txt` to `case_06.txt` seeded via `backend/scripts/seed_historical_cases.py`)
+
+---
+
+### 3. Embeddings & Semantic Search
 * **Default model**: `sentence-transformers/all-MiniLM-L6-v2` (`EMBEDDING_MODEL`)
 * **Vector dimension**: `384` (BERT) | `512` fallback (`LocalHashingEmbeddingProvider`)
 * **Metric**: Vectorized Cosine Similarity (`backend/app/services/retrieval.py`)
