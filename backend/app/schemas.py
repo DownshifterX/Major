@@ -1,11 +1,9 @@
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel
-
+from pydantic import BaseModel, ConfigDict
 
 class PartyIn(BaseModel):
     role: str
     name: str
-
 
 class CaseCreate(BaseModel):
     title: str
@@ -30,11 +28,9 @@ class CaseCreate(BaseModel):
     judgment: Optional[str] = ""
     timeline: Optional[List[Dict[str, Any]]] = []
 
-
 class UrlImportRequest(BaseModel):
     url: str
     case_type: Optional[str] = "General"
-
 
 class CaseUpdate(BaseModel):
     title: Optional[str] = None
@@ -58,47 +54,42 @@ class CaseUpdate(BaseModel):
     status: Optional[str] = None
     error_message: Optional[str] = None
 
-
 class CaseOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     title: str
-    case_number: Optional[str]
-    court: Optional[str]
-    jurisdiction: Optional[str]
-    judge: Optional[str]
-    date_of_judgment: Optional[str]
-    date_of_filing: Optional[str]
-    case_type: Optional[str]
-    legal_domain: Optional[str]
+    case_number: Optional[str] = None
+    court: Optional[str] = None
+    jurisdiction: Optional[str] = None
+    judge: Optional[str] = None
+    date_of_judgment: Optional[str] = None
+    date_of_filing: Optional[str] = None
+    case_type: Optional[str] = None
+    legal_domain: Optional[str] = None
     parties: Optional[List[Any]] = None
     provisions: Optional[List[Any]] = None
     facts: Optional[str] = ""
     issues: Optional[str] = ""
-    charges_issues: Optional[str] = ""   # alias for issues (model property)
+    charges_issues: Optional[str] = ""
     arguments: Optional[Any] = {}
-    arguments_text: Optional[str] = ""   # flattened text of arguments (model property)
+    arguments_text: Optional[str] = ""
     evidence: Optional[Any] = []
-    evidence_text: Optional[str] = ""    # flattened text of evidence (model property)
+    evidence_text: Optional[str] = ""
     procedural_history: Optional[str] = ""
     judgment: Optional[str] = ""
     timeline: Optional[List[Dict[str, Any]]] = []
     status: Optional[str] = "draft"
     error_message: Optional[str] = None
 
-    class Config:
-        from_attributes = True
-
-
 class DocumentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: str
     filename: str
     doc_type: str
     source: str
     num_chunks: int
-
-    class Config:
-        from_attributes = True
-
 
 class CompareRequest(BaseModel):
     historical_case_id: str

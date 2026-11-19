@@ -1,4 +1,3 @@
-import traceback
 from sqlalchemy.orm import Session
 from ..database import SessionLocal
 from .. import models
@@ -10,36 +9,24 @@ def process_document_workflow(case_id: str, document_id: str):
     db: Session = SessionLocal()
     try:
         case = db.get(models.Case, case_id)
-        document = db.get(models.Document, document_id)
-        
-        if not case or not document:
-            return
-            
-        case.status = "processing"
-        db.commit()
-        
-        # 1. Automatic Case Extraction
-        extract_case_profile(db, case_id, document.full_text)
-        
-        # 2. Embedding / Indexing
-        index_document(db, document)
-        
-        # 3. Automatic Analysis (Similar cases, provisions, gaps, etc.)
-        svc.run_similar_cases(db, case)
-        svc.run_legal_provisions(db, case)
-        svc.run_prosecution_defence(db, case)
-        svc.run_evidence_gaps(db, case)
-        svc.run_contradictions(db, case)
-        svc.run_brief(db, case)
-        
-        case.status = "analyzed"
-        db.commit()
+        doc = db.get(models.Document, document_id)
+        if not case or not doc: return
+
+        case.status = "processing"; db.commit()
+        extract_case_profile(db, case_id, doc.full_text)
+        index_document(db, doc)
+
+        for fn in [svc.run_similar_cases, svc.run_legal_provisions, svc.run_prosecution_defence,
+                   svc.run_evidence_gaps, svc.run_contradictions, svc.run_brief]:
+            fn(db, case)
+
+        case.status = "analyzed"; db.commit()
     except Exception as e:
         db.rollback()
         case = db.get(models.Case, case_id)
         if case:
             case.status = "error"
-            case.error_message = f"Workflow failed: {str(e)}\n{traceback.format_exc()}"
+            case.error_message = f"Workflow failed: {e}"
             db.commit()
     finally:
         db.close()
