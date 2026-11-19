@@ -149,26 +149,18 @@ async function refreshSidebar() {
   renderSidebar();
 }
 
-document.getElementById("nav-dashboard").addEventListener("click", () => {
-  state.view = "dashboard";
-  state.currentCaseId = null;
-  render({ refetch: false });
-});
-document.getElementById("nav-corpus").addEventListener("click", () => {
-  state.view = "corpus";
-  state.currentCaseId = null;
-  render({ refetch: false });
-});
-document.getElementById("nav-search").addEventListener("click", () => {
-  state.view = "search";
-  state.currentCaseId = null;
-  render({ refetch: false });
-});
-document.getElementById("btn-new-case").addEventListener("click", () => {
-  state.view = "new-case";
-  state.currentCaseId = null;
-  render({ refetch: false });
-});
+function navigateTo(hash) {
+  if (window.location.hash === hash) {
+    render({ refetch: false });
+  } else {
+    window.location.hash = hash;
+  }
+}
+
+document.getElementById("nav-dashboard").addEventListener("click", () => navigateTo("#dashboard"));
+document.getElementById("nav-corpus").addEventListener("click", () => navigateTo("#corpus"));
+document.getElementById("nav-search").addEventListener("click", () => navigateTo("#search"));
+document.getElementById("btn-new-case").addEventListener("click", () => navigateTo("#new-case"));
 
 // ------------------------------------------------------------ dashboard --
 async function renderDashboard() {
@@ -195,8 +187,7 @@ async function renderDashboard() {
     <div class="grid cols-2" id="dash-case-grid"></div>
   `;
   document.getElementById("dash-new-case").addEventListener("click", () => {
-    state.view = "new-case";
-    render({ refetch: false });
+    navigateTo("#new-case");
   });
 
   const grid = document.getElementById("dash-case-grid");
@@ -324,8 +315,7 @@ function renderNewCase() {
   `;
 
   document.getElementById("f-cancel").addEventListener("click", () => {
-    state.view = "dashboard";
-    render({ refetch: false });
+    navigateTo("#dashboard");
   });
   
   // URL Import handler
@@ -383,13 +373,12 @@ function renderNewCase() {
 }
 
 // --------------------------------------------------------- case workspace
-async function openCase(caseId) {
+async function openCase(caseId, tab = "overview") {
   state.currentCaseId = caseId;
   state.view = "case";
-  state.currentTab = "overview";
+  state.currentTab = tab;
   state.analyses = {};
-  await loadCaseData();
-  render({ refetch: false });
+  navigateTo(`#case/${caseId}/${tab}`);
 }
 
 async function loadCaseData() {
@@ -484,19 +473,22 @@ async function runFullAnalysis() {
     const result = await postJSON(`/cases/${state.currentCaseId}/analyze`, {});
     state.analyses = result;
     await loadCaseData();
+    await fetchCases();
+    renderSidebar();
+    state.currentTab = "similar";
+    updateHash();
     renderCaseWorkspace();
-    if (state.currentTab === "overview") {
-      state.currentTab = "similar";
-      renderCaseWorkspace();
-    }
   } catch (e) {
     showErrorModal("Analysis failed: " + e.message);
     if (holder) {
       holder.innerHTML = `<div class="empty-state"><div class="empty-title">Couldn't complete analysis</div>${esc(e.message)}</div>`;
     }
   } finally {
-    btn.disabled = false;
-    btn.textContent = "Analyze case";
+    const currentBtn = document.getElementById("btn-analyze");
+    if (currentBtn) {
+      currentBtn.disabled = false;
+      currentBtn.textContent = "Analyze case";
+    }
   }
 }
 
@@ -1169,6 +1161,9 @@ async function render(opts = { refetch: true }) {
   const route = parseHash();
   if (route) {
     state.view = route.view;
+    if (route.view !== "case") {
+      state.currentCaseId = null;
+    }
     if (route.caseId && state.cases.some(c => c.id === route.caseId)) {
       state.currentCaseId = route.caseId;
       state.currentTab = route.tab || "overview";
