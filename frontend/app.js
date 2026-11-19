@@ -241,32 +241,153 @@ async function renderDashboard() {
 
 // -------------------------------------------------------------- corpus --
 async function renderCorpus() {
-  if (!state.historicalCases || !state.historicalCases.length) {
-    state.historicalCases = await getJSON("/historical-cases");
-  }
+  state.corpus = state.corpus || { page: 1, limit: 20, q: "" };
+
   main.innerHTML = `
     <div class="page-header">
       <div>
         <h1>Historical Case Corpus</h1>
-        <div class="sub">The precedent library used for retrieval</div>
+        <div class="sub">The precedent library used for retrieval &amp; legal comparative analysis</div>
       </div>
     </div>
-    <div class="synthetic-note" style="background:#e8f0fe; color:#1a73e8; border-color:#c5d7f8;">Real historical precedents from the Indian legal corpus (Indian Kanoon). Includes Supreme Court, High Court, and Tribunal judgments. Grounded retrieval is powered by this corpus.</div>
-    <div class="grid cols-2" id="corpus-grid"></div>
-  `;
-  const grid = document.getElementById("corpus-grid");
-  state.historicalCases.forEach(hc => {
-    grid.appendChild(el(`
-      <div class="card">
-        <div class="title" style="font-weight:600; margin-bottom:6px;">${esc(hc.case_name)}</div>
-        <div class="meta" style="color:var(--muted); font-size:12px; margin-bottom:10px;">
-          ${esc(hc.court || "")} ${hc.year ? "· " + hc.year : ""} ${hc.citation ? "· " + esc(hc.citation) : ""}
-        </div>
-        <div style="font-size:13px; margin-bottom:8px;">${esc(hc.case_type || "")}</div>
-        <div style="font-size:13px; color:var(--muted);">${esc((hc.summary || "").slice(0, 220))}…</div>
+    <div class="synthetic-note" style="background:#e8f0fe; color:#1a73e8; border-color:#c5d7f8; margin-bottom:16px;">
+      Real historical precedents from the Indian legal corpus (Indian Kanoon). Includes Supreme Court, High Court, and Tribunal judgments. Grounded retrieval is powered by this corpus.
+    </div>
+
+    <div class="card" style="margin-bottom:16px; padding:14px 18px;">
+      <div style="display:flex; gap:12px; align-items:center;">
+        <input type="text" id="corpus-search-input" placeholder="Search precedents by case name, court, or citation..." value="${esc(state.corpus.q)}" style="flex:1; font-size:14px;" />
+        <button class="btn primary" id="corpus-search-btn" style="white-space:nowrap;">Search</button>
+        ${state.corpus.q ? `<button class="btn ghost" id="corpus-clear-btn" style="white-space:nowrap;">Clear</button>` : ""}
       </div>
-    `));
+    </div>
+
+    <div id="corpus-container">
+      <div class="loading-line">Loading corpus precedents…</div>
+    </div>
+  `;
+
+  document.getElementById("corpus-search-btn").addEventListener("click", () => {
+    state.corpus.q = document.getElementById("corpus-search-input").value.trim();
+    state.corpus.page = 1;
+    loadCorpusPage();
   });
+
+  document.getElementById("corpus-search-input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      state.corpus.q = e.target.value.trim();
+      state.corpus.page = 1;
+      loadCorpusPage();
+    }
+  });
+
+  const clearBtn = document.getElementById("corpus-clear-btn");
+  if (clearBtn) {
+    clearBtn.addEventListener("click", () => {
+      state.corpus.q = "";
+      state.corpus.page = 1;
+      renderCorpus();
+    });
+  }
+
+  await loadCorpusPage();
+}
+
+async function loadCorpusPage() {
+  const container = document.getElementById("corpus-container");
+  if (!container) return;
+  container.innerHTML = `<div class="loading-line">Loading page ${state.corpus.page}…</div>`;
+
+  try {
+    const url = `/historical-cases?page=${state.corpus.page}&limit=${state.corpus.limit}&envelope=true${state.corpus.q ? '&q=' + encodeURIComponent(state.corpus.q) : ''}`;
+    const data = await getJSON(url);
+    const items = data.items || [];
+    const total = data.total || 0;
+    const pages = data.pages || 1;
+    const page = data.page || 1;
+
+    function renderPaginationHtml() {
+      return `
+        <div class="pagination-bar">
+          <div class="pagination-info">
+            Showing <strong>${items.length ? (page - 1) * state.corpus.limit + 1 : 0}–${Math.min(page * state.corpus.limit, total)}</strong> of <strong>${total.toLocaleString()}</strong> precedents
+          </div>
+          <div class="pagination-controls">
+            <button class="pagination-btn" id="p-first" ${page <= 1 ? "disabled" : ""}>⏮ First</button>
+            <button class="pagination-btn" id="p-prev" ${page <= 1 ? "disabled" : ""}>◀ Prev</button>
+            <span class="pagination-page-indicator">Page ${page} of ${pages}</span>
+            <button class="pagination-btn" id="p-next" ${page >= pages ? "disabled" : ""}>Next ▶</button>
+            <button class="pagination-btn" id="p-last" ${page >= pages ? "disabled" : ""}>Last ⏭</button>
+          </div>
+        </div>
+      `;
+    }
+
+    if (!items.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-title">No precedents found</div>
+          ${state.corpus.q ? `No precedents matching "${esc(state.corpus.q)}". Try a different search term.` : "No precedents in database."}
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      ${renderPaginationHtml()}
+      <div class="grid cols-2" id="corpus-grid"></div>
+      ${renderPaginationHtml()}
+    `;
+
+    const grid = container.querySelector("#corpus-grid");
+    items.forEach(hc => {
+      grid.appendChild(el(`
+        <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <div class="title" style="font-weight:600; font-size:15px; margin-bottom:6px; color:var(--navy);">${esc(hc.case_name)}</div>
+            <div class="meta" style="color:var(--muted); font-size:12px; margin-bottom:10px;">
+              ${esc(hc.court || "High Court / Supreme Court")} ${hc.year ? "· " + hc.year : ""} ${hc.citation ? "· " + esc(hc.citation) : ""}
+            </div>
+            <div style="font-size:12.5px; font-weight:600; color:var(--saffron); margin-bottom:8px;">${esc(hc.case_type || "Land & Property Dispute")}</div>
+            <div style="font-size:13px; color:var(--muted); line-height:1.45;">${esc((hc.summary || "").slice(0, 240))}…</div>
+          </div>
+          <div style="margin-top:14px; padding-top:10px; border-top:1px solid var(--cream-border); display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11.5px; color:var(--muted);">${hc.document_count ? hc.document_count + " document(s)" : "Corpus record"}</span>
+            <button class="btn ghost small btn-compare-hc" data-id="${esc(hc.id)}" data-name="${esc(hc.case_name)}">⚖️ Compare Target</button>
+          </div>
+        </div>
+      `));
+    });
+
+    container.querySelectorAll(".btn-compare-hc").forEach(btn => {
+      btn.addEventListener("click", () => {
+        state.compareTargetId = btn.dataset.id;
+        if (state.currentCaseId) {
+          openCase(state.currentCaseId, "compare");
+        } else if (state.cases && state.cases.length) {
+          openCase(state.cases[0].id, "compare");
+        } else {
+          alert("Open an active case first to run comparison against " + btn.dataset.name);
+        }
+      });
+    });
+
+    container.querySelectorAll("#p-first").forEach(b => b.addEventListener("click", () => {
+      if (state.corpus.page > 1) { state.corpus.page = 1; loadCorpusPage(); }
+    }));
+    container.querySelectorAll("#p-prev").forEach(b => b.addEventListener("click", () => {
+      if (state.corpus.page > 1) { state.corpus.page--; loadCorpusPage(); }
+    }));
+    container.querySelectorAll("#p-next").forEach(b => b.addEventListener("click", () => {
+      if (state.corpus.page < pages) { state.corpus.page++; loadCorpusPage(); }
+    }));
+    container.querySelectorAll("#p-last").forEach(b => b.addEventListener("click", () => {
+      if (state.corpus.page < pages) { state.corpus.page = pages; loadCorpusPage(); }
+    }));
+
+  } catch (err) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-title">Couldn't load corpus</div>${esc(err.message)}</div>`;
+  }
 }
 
 // ------------------------------------------------------------ new case --
