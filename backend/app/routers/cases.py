@@ -122,3 +122,73 @@ def case_citation_graph(case_id: str, db: Session = Depends(get_db)):
         top_hist = db.query(models.HistoricalCase).first()
         target_id = top_hist.id if top_hist else case_id
     return graph.get_case_citation_subgraph(target_id, depth=2)
+
+@router.get("/{case_id}/related-precedents")
+def get_related_precedents(case_id: str, db: Session = Depends(get_db)):
+    from ..services.citation_graph import get_citation_graph
+    from ..services.retrieval import retrieve_historical_chunks
+    from ..services.reranker import rerank_candidates
+    case = db.get(models.Case, case_id)
+    if not case: raise HTTPException(404, "Case not found")
+
+    q = " ".join(filter(None, [case.case_type or "", case.facts or "", case.charges_issues or case.issues or "", case.arguments_text or ""]))
+    if not q.strip():
+        return []
+
+    retrieved = retrieve_historical_chunks(db, q, top_k=25, per_case_cap=3)
+    if not retrieved:
+        return []
+
+    # Rerank for genuine relevance, keep top 15 candidates
+    reranked = rerank_candidates(db, case, retrieved, top_k=15)
+    score_map = {r.historical_case.id: (round(r.total_score, 3), r.explanation, r.to_dict().get("score_breakdown")) for r in reranked}
+
+    # Citation graph expansion (top authorities directly linked)
+    retrieved_hc_ids = list(dict.fromkeys(r.chunk.historical_case_id for r in retrieved if r.chunk.historical_case_id))
+    graph = get_citation_graph(db)
+    graph_ids = []
+    target_id = next((hid for hid in retrieved_hc_ids if hid in graph.graph), None)
+    if target_id:
+        sub = graph.get_case_citation_subgraph(target_id, depth=1)
+        graph_ids = [n["id"] for n in sub.get("nodes", []) if n["id"] != target_id]
+
+    priority_ids = [r.historical_case.id for r in reranked]
+    combined_ids = list(dict.fromkeys(priority_ids + graph_ids))
+
+    cases = db.query(models.HistoricalCase).filter(models.HistoricalCase.id.in_(combined_ids)).all()
+    case_map = {c.id: c for c in cases}
+
+    result = []
+    seen_names = set()
+    current_title_lower = (case.title or "").strip().lower()
+
+    for cid in combined_ids:
+        c = case_map.get(cid)
+        if not c:
+            continue
+        # Exclude current case if names or IDs match
+        norm_name = c.case_name.strip().lower()
+        if c.id == case.id or norm_name == current_title_lower:
+            continue
+        # Deduplicate identical or near-identical case titles
+        if norm_name in seen_names:
+            continue
+        seen_names.add(norm_name)
+
+        score_info = score_map.get(cid)
+        if score_info:
+            score, why, breakdown = score_info
+        else:
+            score, why, breakdown = None, f"Connected authority cited within precedent network.", None
+
+        result.append({
+            "id": c.id, "case_name": c.case_name, "court": c.court, "year": c.year,
+            "citation": c.citation, "outcome": c.outcome, "summary": c.summary,
+            "relevance_score": score,
+            "why_relevant": why or f"Relevant precedent for {case.case_type or 'this legal issue'}",
+            "score_breakdown": breakdown,
+        })
+        if len(result) >= 15:
+            break
+
+    return result

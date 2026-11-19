@@ -41,7 +41,7 @@ class GeminiProvider(LLMProvider):
     def generate(self, prompt: str) -> str:
         body = {"contents": [{"parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.1, "maxOutputTokens": 2048}}
         try:
-            with httpx.Client(timeout=45.0) as client:
+            with httpx.Client(timeout=12.0) as client:
                 resp = client.post(self.base_url, json=body)
                 resp.raise_for_status()
                 data = resp.json()
@@ -50,7 +50,7 @@ class GeminiProvider(LLMProvider):
             if self.model != "gemini-3.5-flash-lite":
                 try:
                     fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={self.api_key}"
-                    with httpx.Client(timeout=45.0) as client:
+                    with httpx.Client(timeout=10.0) as client:
                         resp = client.post(fallback_url, json=body)
                         resp.raise_for_status()
                         return resp.json()["candidates"][0]["content"]["parts"][0]["text"]

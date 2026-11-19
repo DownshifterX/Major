@@ -14,11 +14,16 @@ Usage:
 """
 
 import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
 import sys
 import time
 import socket
 import argparse
 import webbrowser
+import warnings
+warnings.filterwarnings("ignore")
 from pathlib import Path
 
 # Paths
@@ -79,8 +84,12 @@ def initialize_environment():
 def initialize_database():
     """Pre-initialize database tables and check precedent corpus."""
     try:
-        from app.database import Base, engine, SessionLocal
-        from app import models
+        try:
+            from app.database import Base, engine, SessionLocal
+            from app import models
+        except ImportError:
+            from backend.app.database import Base, engine, SessionLocal
+            from backend.app import models
 
         Base.metadata.create_all(bind=engine)
         db = SessionLocal()

@@ -1,7 +1,8 @@
+import concurrent.futures
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 from .. import models, schemas
-from ..database import get_db
+from ..database import get_db, SessionLocal
 from ..services import analysis_service as svc
 from ..services import export as export_service
 
@@ -25,25 +26,38 @@ def analyze_case(case_id: str, db: Session = Depends(get_db)):
     case.status = "analyzed"; db.commit()
     return results
 
+def _get_stored_or_run(db: Session, case: models.Case, analysis_type: str, runner):
+    stored = (db.query(models.Analysis)
+              .filter(models.Analysis.case_id == case.id, models.Analysis.analysis_type == analysis_type)
+              .order_by(models.Analysis.created_at.desc()).first())
+    if stored and stored.content:
+        return {"analysis_id": stored.id, **stored.content, "citations": svc._citations_payload(stored)}
+    return runner(db, case)
+
 @router.get("/{case_id}/similar-cases")
 def get_similar_cases(case_id: str, db: Session = Depends(get_db)):
-    return svc.run_similar_cases(db, _get_case(db, case_id))
+    case = _get_case(db, case_id)
+    return _get_stored_or_run(db, case, "similar_cases", svc.run_similar_cases)
 
 @router.get("/{case_id}/legal-provisions")
 def get_legal_provisions(case_id: str, db: Session = Depends(get_db)):
-    return svc.run_legal_provisions(db, _get_case(db, case_id))
+    case = _get_case(db, case_id)
+    return _get_stored_or_run(db, case, "legal_provisions", svc.run_legal_provisions)
 
 @router.get("/{case_id}/prosecution-defence")
 def get_prosecution_defence(case_id: str, db: Session = Depends(get_db)):
-    return svc.run_prosecution_defence(db, _get_case(db, case_id))
+    case = _get_case(db, case_id)
+    return _get_stored_or_run(db, case, "prosecution_defence", svc.run_prosecution_defence)
 
 @router.get("/{case_id}/evidence-gaps")
 def get_evidence_gaps(case_id: str, db: Session = Depends(get_db)):
-    return svc.run_evidence_gaps(db, _get_case(db, case_id))
+    case = _get_case(db, case_id)
+    return _get_stored_or_run(db, case, "evidence_gaps", svc.run_evidence_gaps)
 
 @router.get("/{case_id}/contradictions")
 def get_contradictions(case_id: str, db: Session = Depends(get_db)):
-    return svc.run_contradictions(db, _get_case(db, case_id))
+    case = _get_case(db, case_id)
+    return _get_stored_or_run(db, case, "contradictions", svc.run_contradictions)
 
 @router.post("/{case_id}/compare")
 def compare_case(case_id: str, payload: schemas.CompareRequest, db: Session = Depends(get_db)):
@@ -53,8 +67,12 @@ def compare_case(case_id: str, payload: schemas.CompareRequest, db: Session = De
         raise HTTPException(404, str(e))
 
 @router.get("/{case_id}/brief")
-def get_brief(case_id: str, db: Session = Depends(get_db)):
-    return svc.run_brief(db, _get_case(db, case_id))
+def get_brief(case_id: str, refresh: bool = False, db: Session = Depends(get_db)):
+    return svc.run_brief(db, _get_case(db, case_id), force_refresh=refresh)
+
+@router.post("/{case_id}/brief")
+def regenerate_brief(case_id: str, db: Session = Depends(get_db)):
+    return svc.run_brief(db, _get_case(db, case_id), force_refresh=True)
 
 @router.get("/{case_id}/brief/export")
 def export_brief(case_id: str, db: Session = Depends(get_db)):

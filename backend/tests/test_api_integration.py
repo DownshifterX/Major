@@ -354,3 +354,101 @@ def test_get_historical_case(client, seeded_corpus):
 
 def test_get_historical_case_not_found(client):
     assert client.get("/historical-cases/invalid123").status_code == 404
+
+
+# ===== Bug 1: Related Precedents Shortlist Verification =====
+
+def test_related_precedents_shortlist(client, seeded_corpus):
+    r_create = client.post("/cases", json={
+        "title": "Land Title vs State Acquisition",
+        "case_type": "Land Acquisition",
+        "facts": "Land Acquisition Act Section 4 notification and compensation dispute regarding agricultural property",
+        "charges_issues": "Whether compensation was adequately assessed under land laws",
+    })
+    assert r_create.status_code == 200
+    cid = r_create.json()["id"]
+
+    r = client.get(f"/cases/{cid}/related-precedents")
+    assert r.status_code == 200
+    data = r.json()
+    assert isinstance(data, list)
+    assert len(data) <= 15, "Candidate list must be capped to a meaningful shortlist (<=15)"
+    # Deduplication and structure check
+    seen = set()
+    for item in data:
+        assert "id" in item
+        assert "case_name" in item
+        assert "why_relevant" in item
+        assert item["case_name"].lower() not in seen, f"Duplicate precedent returned: {item['case_name']}"
+        seen.add(item["case_name"].lower())
+        assert item["id"] != cid, "Current case must not be included in precedents"
+
+
+def test_related_precedents_empty_on_blank_case(client):
+    r_create = client.post("/cases", json={
+        "title": "Blank Land Dispute",
+        "case_type": "Land Dispute",
+        "facts": "",
+        "charges_issues": "",
+    })
+    assert r_create.status_code == 200
+    cid = r_create.json()["id"]
+
+    r = client.get(f"/cases/{cid}/related-precedents")
+    assert r.status_code == 200
+    assert r.json() == []
+
+
+# ===== Bug 2: Pre-Hearing Brief & Comparison Structure Verification =====
+
+def test_brief_structure_and_refresh(client, seeded_corpus):
+    r_create = client.post("/cases", json={
+        "title": "State Land Acquisition Reference",
+        "case_type": "Land Acquisition",
+        "facts": "Land acquisition proceedings under Land Acquisition Act with market value exemplar deeds.",
+        "charges_issues": "Determination of compensation and statutory solatium under land acquisition.",
+    })
+    assert r_create.status_code == 200
+    cid = r_create.json()["id"]
+
+    # First fetch (synthesizes brief)
+    r1 = client.get(f"/cases/{cid}/brief")
+    assert r1.status_code == 200
+    b1 = r1.json()
+    assert "case_overview" in b1
+    assert "key_facts" in b1
+    assert "relevant_laws" in b1
+    assert "relevant_precedents" in b1
+    assert isinstance(b1["relevant_laws"], list)
+    assert isinstance(b1["relevant_precedents"], list)
+
+    # Second fetch should return cached stored brief
+    r2 = client.get(f"/cases/{cid}/brief")
+    assert r2.status_code == 200
+    assert r2.json()["analysis_id"] == b1["analysis_id"]
+
+    # Force regenerate via POST
+    r3 = client.post(f"/cases/{cid}/brief", json={})
+    assert r3.status_code == 200
+    assert "case_overview" in r3.json()
+
+
+def test_compare_returns_both_current_and_historical(client, seeded_corpus):
+    hc1, _ = seeded_corpus
+    r_create = client.post("/cases", json={
+        "title": "Current Land Acquisition Dispute",
+        "case_type": "Land Acquisition",
+        "facts": "Detailed current case facts on land parcel compensation and possession.",
+        "charges_issues": "Whether statutory compensation was properly computed under land acquisition.",
+    })
+    assert r_create.status_code == 200
+    cid = r_create.json()["id"]
+
+    r = client.post(f"/cases/{cid}/compare", json={"historical_case_id": hc1.id})
+    assert r.status_code == 200
+    res = r.json()
+    assert "current_case" in res
+    assert res["current_case"]["facts"] == "Detailed current case facts on land parcel compensation and possession."
+    assert "historical_case" in res
+    assert res["historical_case"]["case_name"] == hc1.case_name
+

@@ -395,6 +395,14 @@ async function openCase(caseId) {
 async function loadCaseData() {
   state.currentCase = await getJSON(`/cases/${state.currentCaseId}`);
   state.documents = await getJSON(`/cases/${state.currentCaseId}/documents`);
+  try {
+    const list = await getJSON(`/cases/${state.currentCaseId}/analysis`);
+    (list || []).forEach(a => {
+      if (a.analysis_type && a.content && !state.analyses[a.analysis_type]) {
+        state.analyses[a.analysis_type] = { analysis_id: a.id, ...a.content, citations: a.citations || [] };
+      }
+    });
+  } catch (e) {}
 }
 
 const TABS = [
@@ -430,7 +438,7 @@ function renderCaseWorkspace() {
   const tabsEl = document.getElementById("tabs");
   TABS.forEach(([key, label]) => {
     const t = el(`<div class="tab ${state.currentTab === key ? "active" : ""}">${label}</div>`);
-    t.addEventListener("click", () => { state.currentTab = key; renderTabContent(); syncTabHighlight(); });
+    t.addEventListener("click", () => { state.currentTab = key; renderTabContent(); syncTabHighlight(); updateHash(); });
     tabsEl.appendChild(t);
   });
   document.getElementById("btn-analyze").addEventListener("click", runFullAnalysis);
@@ -451,17 +459,40 @@ function syncTabHighlight() {
 
 async function runFullAnalysis() {
   const btn = document.getElementById("btn-analyze");
-  btn.disabled = true; btn.textContent = "Analyzing…";
+  btn.disabled = true;
+  btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite; margin-right:6px;">⚙</span> Analyzing pipelines…`;
+  
+  const holder = document.getElementById("tab-content");
+  if (holder) {
+    holder.innerHTML = `
+      <div class="card" style="text-align:center; padding:40px 20px;">
+        <div style="font-size:24px; margin-bottom:12px;">⚖️</div>
+        <h3 style="margin:0 0 8px 0; font-family:var(--serif);">Synthesizing Legal Precedents &amp; Arguments</h3>
+        <p style="color:var(--muted); font-size:13.5px; max-width:540px; margin:0 auto 16px auto;">
+          Querying precedent corpus, computing statutory overlap, and running AI decision-support synthesis...
+        </p>
+        <div class="loading-line" style="margin:0 auto; width:180px;"></div>
+      </div>
+    `;
+  }
+
   try {
     const result = await postJSON(`/cases/${state.currentCaseId}/analyze`, {});
     state.analyses = result;
     await loadCaseData();
     renderCaseWorkspace();
-    if (state.currentTab === "overview") { state.currentTab = "similar"; renderCaseWorkspace(); }
+    if (state.currentTab === "overview") {
+      state.currentTab = "similar";
+      renderCaseWorkspace();
+    }
   } catch (e) {
-    alert("Analysis failed: " + e.message);
+    showErrorModal("Analysis failed: " + e.message);
+    if (holder) {
+      holder.innerHTML = `<div class="empty-state"><div class="empty-title">Couldn't complete analysis</div>${esc(e.message)}</div>`;
+    }
   } finally {
-    btn.disabled = false; btn.textContent = "Analyze case";
+    btn.disabled = false;
+    btn.textContent = "Analyze case";
   }
 }
 
@@ -738,14 +769,21 @@ function renderSimilarCases(holder, result) {
 function renderLegalProvisions(holder, result) {
   const provisions = result.legal_provisions || [];
   provisions.forEach(p => {
+    const prov = typeof p === "string" ? p.trim() : (p.provision || p.act || p.law || p.section || (typeof p === "object" ? Object.values(p).join(" - ") : String(p))).trim();
+    if (!prov) return;
+    const why = typeof p === "string" ? "" : (p.why_relevant || p.relevance || "");
+    const refs = typeof p === "string" ? [] : (p.source_refs || []);
     holder.appendChild(el(`
       <div class="result-card">
-        <div class="rc-title">${esc(p.provision)}</div>
-        <div class="rc-body">${esc(p.why_relevant)}</div>
-        <div style="margin-top:8px;">${refChips(p.source_refs)}</div>
+        <div class="rc-title">${esc(prov)}</div>
+        ${why ? `<div class="rc-body">${esc(why)}</div>` : ""}
+        ${refs.length ? `<div style="margin-top:8px;">${refChips(refs)}</div>` : ""}
       </div>
     `));
   });
+  if (!provisions.length) {
+    holder.appendChild(el(`<div class="empty-state"><div class="empty-title">No legal provisions identified</div>Run "Analyze case" from the top of the page.</div>`));
+  }
 }
 
 function renderProsecutionDefence(holder, result) {
@@ -802,45 +840,133 @@ function renderContradictions(holder, result) {
 }
 
 function renderBrief(holder, result) {
+  const briefHeader = el(`
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--border);">
+      <div>
+        <h2 style="font-family:var(--serif); margin:0 0 4px 0; font-size:20px;">Pre-Hearing Brief &amp; Strategy</h2>
+        <div style="font-size:12.5px; color:var(--muted);">Grounded decision-support synthesis across pleadings, retrieved statutes, and precedent authorities.</div>
+      </div>
+      <button class="btn ghost small" id="btn-refresh-brief" title="Re-synthesize this brief using latest case data and analyses">↺ Regenerate Brief</button>
+    </div>
+  `);
+  holder.appendChild(briefHeader);
+
+  briefHeader.querySelector("#btn-refresh-brief").addEventListener("click", async () => {
+    const btn = briefHeader.querySelector("#btn-refresh-brief");
+    btn.disabled = true;
+    btn.textContent = "Regenerating…";
+    try {
+      const fresh = await postJSON(`/cases/${state.currentCaseId}/brief`, {});
+      state.analyses.brief = fresh;
+      setCitationsMap(fresh.citations || []);
+      holder.innerHTML = "";
+      renderBrief(holder, fresh);
+      attachRefChipHandlers(holder);
+    } catch (e) {
+      alert("Failed to regenerate brief: " + e.message);
+      btn.disabled = false;
+      btn.textContent = "↺ Regenerate Brief";
+    }
+  });
+
   const sections = [
     ["Case overview", result.case_overview],
     ["Key facts", result.key_facts],
     ["Legal issues", result.legal_issues],
   ];
   sections.forEach(([title, body]) => {
-    holder.appendChild(el(`<div class="analysis-block"><h3>${esc(title)}</h3><div>${nl2br(body)}</div></div>`));
+    if (body) {
+      holder.appendChild(el(`<div class="analysis-block"><h3>${esc(title)}</h3><div>${nl2br(body)}</div></div>`));
+    }
   });
 
+  // Relevant laws
   const laws = el(`<div class="analysis-block"><h3>Relevant laws</h3></div>`);
-  (result.relevant_laws || []).forEach(p => laws.appendChild(el(`<div class="result-card"><div class="rc-title">${esc(p.provision)}</div><div class="rc-body">${esc(p.why_relevant)}</div></div>`)));
-  if (!(result.relevant_laws || []).length) laws.appendChild(el(`<div style="color:var(--muted); font-size:13px;">Run Legal Analysis first.</div>`));
+  let lawCount = 0;
+  (result.relevant_laws || []).forEach(p => {
+    const prov = typeof p === "string" ? p.trim() : (p.provision || p.act || p.law || p.title || p.section || (typeof p === "object" ? Object.values(p).filter(v => typeof v === "string").join(" — ") : String(p))).trim();
+    if (!prov) return;
+    lawCount++;
+    const why = typeof p === "string" ? "" : (p.why_relevant || p.relevance || p.explanation || "");
+    laws.appendChild(el(`
+      <div class="result-card">
+        <div class="rc-title">${esc(prov)}</div>
+        ${why ? `<div class="rc-body">${esc(why)}</div>` : ""}
+      </div>
+    `));
+  });
+  if (!lawCount) {
+    laws.appendChild(el(`<div style="color:var(--muted); font-size:13px;">No relevant laws identified yet. Run <strong>Legal Analysis</strong> first to identify statutory provisions.</div>`));
+  }
   holder.appendChild(laws);
 
+  // Relevant precedents
   const precedents = el(`<div class="analysis-block"><h3>Relevant precedents</h3></div>`);
-  (result.relevant_precedents || []).forEach(p => precedents.appendChild(el(`<div class="result-card"><div class="rc-title">${esc(p.case_name)}</div><div class="rc-body">${esc(p.why_relevant)}</div></div>`)));
-  if (!(result.relevant_precedents || []).length) precedents.appendChild(el(`<div style="color:var(--muted); font-size:13px;">Run Similar Cases first.</div>`));
+  let precCount = 0;
+  (result.relevant_precedents || []).forEach(p => {
+    const name = typeof p === "string" ? p.trim() : (p.case_name || p.title || p.name || p.citation || (typeof p === "object" ? Object.values(p).filter(v => typeof v === "string").join(" — ") : String(p))).trim();
+    if (!name) return;
+    precCount++;
+    const why = typeof p === "string" ? "" : (p.why_relevant || p.relevance || p.explanation || "");
+    precedents.appendChild(el(`
+      <div class="result-card">
+        <div class="rc-title">${esc(name)}</div>
+        ${why ? `<div class="rc-body">${esc(why)}</div>` : ""}
+      </div>
+    `));
+  });
+  if (!precCount) {
+    precedents.appendChild(el(`<div style="color:var(--muted); font-size:13px;">No relevant precedents retrieved yet. Run <strong>Similar Cases</strong> first to locate authorities.</div>`));
+  }
   holder.appendChild(precedents);
 
+  // Prosecution vs Defence
   const pd = el(`<div class="analysis-block"><h3>Prosecution vs Defence</h3></div>`);
-  const pdWrap = el(`<div class="pd-columns"><div class="pd-side"><div class="column-heading">Prosecution</div><ul></ul></div><div class="pd-side"><div class="column-heading">Defence</div><ul></ul></div></div>`);
-  ((result.prosecution_arguments || {}).arguments || []).forEach(a => pdWrap.querySelector(".pd-side:nth-child(1) ul").appendChild(el(`<li>${esc(a)}</li>`)));
-  ((result.defence_arguments || {}).arguments || []).forEach(a => pdWrap.querySelector(".pd-side:nth-child(2) ul").appendChild(el(`<li>${esc(a)}</li>`)));
+  const pdWrap = el(`<div class="pd-columns"><div class="pd-side"><div class="column-heading">Prosecution / Appellant</div><ul></ul></div><div class="pd-side"><div class="column-heading">Defence / Respondent</div><ul></ul></div></div>`);
+  const prosUl = pdWrap.querySelector(".pd-side:nth-child(1) ul");
+  const defUl = pdWrap.querySelector(".pd-side:nth-child(2) ul");
+  const prosArgs = Array.isArray(result.prosecution_arguments) ? result.prosecution_arguments : ((result.prosecution_arguments || {}).arguments || (result.prosecution_arguments || {}).petitioner || []);
+  const defArgs = Array.isArray(result.defence_arguments) ? result.defence_arguments : ((result.defence_arguments || {}).arguments || (result.defence_arguments || {}).respondent || []);
+  prosArgs.forEach(a => prosUl.appendChild(el(`<li>${esc(typeof a === "string" ? a : (a.argument || JSON.stringify(a)))}</li>`)));
+  defArgs.forEach(a => defUl.appendChild(el(`<li>${esc(typeof a === "string" ? a : (a.argument || JSON.stringify(a)))}</li>`)));
+  if (!prosArgs.length) prosUl.appendChild(el(`<li style="color:var(--muted); font-size:12.5px;">No prosecution arguments extracted.</li>`));
+  if (!defArgs.length) defUl.appendChild(el(`<li style="color:var(--muted); font-size:12.5px;">No defence arguments extracted.</li>`));
   pd.appendChild(pdWrap);
   holder.appendChild(pd);
 
-  const evi = el(`<div class="analysis-block"><h3>Evidence summary & gaps</h3></div>`);
-  const eviWrap = el(`<div><div class="tag-present">Present</div><ul></ul><div class="tag-verify" style="margin-top:10px;">To verify</div><ul></ul></div>`);
-  (result.evidence_summary || []).forEach(a => eviWrap.querySelector("ul:nth-of-type(1)").appendChild(el(`<li>${esc(a)}</li>`)));
-  (result.evidence_gaps || []).forEach(a => eviWrap.querySelector("ul:nth-of-type(2)").appendChild(el(`<li>${esc(a)}</li>`)));
+  // Evidence summary & gaps
+  const evi = el(`<div class="analysis-block"><h3>Evidence summary &amp; gaps</h3></div>`);
+  const eviWrap = el(`<div><div class="tag-present">Present Evidence</div><ul></ul><div class="tag-verify" style="margin-top:12px;">Evidence to Verify / Gaps</div><ul></ul></div>`);
+  const presUl = eviWrap.querySelector("ul:nth-of-type(1)");
+  const verUl = eviWrap.querySelector("ul:nth-of-type(2)");
+  const evPresent = Array.isArray(result.evidence_summary) ? result.evidence_summary : (result.evidence_present || []);
+  const evGaps = Array.isArray(result.evidence_gaps) ? result.evidence_gaps : (result.potential_evidence_to_verify || []);
+  evPresent.forEach(a => presUl.appendChild(el(`<li>${esc(typeof a === "string" ? a : (a.description || JSON.stringify(a)))}</li>`)));
+  evGaps.forEach(a => verUl.appendChild(el(`<li>${esc(typeof a === "string" ? a : (a.description || JSON.stringify(a)))}</li>`)));
+  if (!evPresent.length) presUl.appendChild(el(`<li style="color:var(--muted); font-size:12.5px;">No direct evidence documented.</li>`));
+  if (!evGaps.length) verUl.appendChild(el(`<li style="color:var(--muted); font-size:12.5px;">No notable evidentiary gaps recorded.</li>`));
   evi.appendChild(eviWrap);
   holder.appendChild(evi);
 
+  // Contradictions
   const contra = el(`<div class="analysis-block"><h3>Contradictions</h3></div>`);
-  (result.contradictions || []).forEach(c => contra.appendChild(el(`<div class="result-card"><div class="rc-title">${esc((c.type||"").replace(/_/g," "))}</div><div class="rc-body">${esc(c.description)}</div></div>`)));
+  let contraCount = 0;
+  (result.contradictions || []).forEach(c => {
+    contraCount++;
+    const title = typeof c === "string" ? "Contradiction / Conflict" : ((c.type || "Contradiction").replace(/_/g, " "));
+    const desc = typeof c === "string" ? c : (c.description || JSON.stringify(c));
+    contra.appendChild(el(`<div class="result-card"><div class="rc-title">${esc(title)}</div><div class="rc-body">${esc(desc)}</div></div>`));
+  });
+  if (!contraCount) {
+    contra.appendChild(el(`<div style="color:var(--muted); font-size:13px;">No explicit evidentiary or timeline contradictions detected across documents.</div>`));
+  }
   holder.appendChild(contra);
 
+  // Questions to examine
   const questions = el(`<div class="analysis-block"><h3>Questions to examine</h3><ul></ul></div>`);
-  (result.questions_to_examine || []).forEach(q => questions.querySelector("ul").appendChild(el(`<li>${esc(q)}</li>`)));
+  const qUl = questions.querySelector("ul");
+  (result.questions_to_examine || []).forEach(q => qUl.appendChild(el(`<li>${esc(typeof q === "string" ? q : (q.question || JSON.stringify(q)))}</li>`)));
+  if (!(result.questions_to_examine || []).length) qUl.appendChild(el(`<li style="color:var(--muted); font-size:12.5px;">No additional hearing questions specified.</li>`));
   holder.appendChild(questions);
 
   if (result.warning) holder.appendChild(el(`<p class="disclaimer" style="color:var(--warn);">${esc(result.warning)}</p>`));
@@ -849,24 +975,36 @@ function renderBrief(holder, result) {
 
 // -------------------------------------------------------------- compare --
 async function renderCompareTab(holder) {
-  if (!state.historicalCases.length) {
-    holder.innerHTML = `<div class="loading-line">Loading precedent cases for comparison…</div>`;
-    try {
-      state.historicalCases = await getJSON("/historical-cases");
-    } catch (e) {
-      holder.innerHTML = `<div class="empty-state"><div class="empty-title">Failed to load precedent cases</div>${esc(e.message)}</div>`;
-      return;
-    }
+  holder.innerHTML = `<div class="loading-line">Retrieving and ranking relevant precedent authorities for comparison…</div>`;
+  let relatedCases = [];
+  try {
+    relatedCases = await getJSON(`/cases/${state.currentCaseId}/related-precedents`);
+  } catch (e) {
+    relatedCases = [];
   }
 
-  // Check if we have similar cases from previous analysis to suggest as top picks
+  if (!relatedCases.length) {
+    holder.innerHTML = `
+      <div class="card">
+        <h3 style="margin-top:0;">Precedent Case Comparison</h3>
+        <div class="empty-state">
+          <div class="empty-title">No sufficiently relevant precedents found</div>
+          <p style="margin-top:8px; line-height:1.5;">
+            No sufficiently relevant precedents were identified in the corpus for this case's specific facts and legal issues.
+            Try uploading case documents or running <strong>Analyze case</strong> from the top toolbar to enrich retrieval signals.
+          </p>
+        </div>
+      </div>`;
+    return;
+  }
+
   const similarList = (state.analyses.similar_cases?.similar_cases || []);
   let topOptionsHtml = "";
   if (similarList.length) {
     topOptionsHtml = `
       <optgroup label="⭐ Top Similar Precedents (from Analysis)">
         ${similarList.map(sc => {
-          const match = state.historicalCases.find(hc => hc.case_name === sc.case_name);
+          const match = relatedCases.find(hc => hc.case_name === sc.case_name);
           const val = match ? match.id : "";
           return val ? `<option value="${val}">★ ${esc(sc.case_name)} (${esc(sc.court || "")} ${sc.year || ""})</option>` : "";
         }).filter(Boolean).join("")}
@@ -877,15 +1015,18 @@ async function renderCompareTab(holder) {
   holder.innerHTML = `
     <div class="card" style="margin-bottom:20px;">
       <h3 style="margin-top:0; margin-bottom:8px;">Precedent Case Comparison</h3>
-      <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">Select any historical precedent or relevant case from the library to perform an automated side-by-side comparative analysis of facts, legal provisions, issues, and applicability.</p>
-      <label for="compare-select" style="font-weight:600;">Choose a precedent to compare against:</label>
+      <p style="color:var(--muted); font-size:13px; margin-bottom:14px;">
+        Select a recommended precedent from the curated shortlist below (ranked by statutory match, semantic relevance, and citation authority) to perform an automated side-by-side comparative analysis.
+      </p>
+      <label for="compare-select" style="font-weight:600;">Choose a relevant precedent to compare against:</label>
       <select id="compare-select" style="width:100%; padding:9px 12px; margin-top:6px; border:1px solid var(--border); border-radius:6px; font-size:13.5px; background:var(--card-bg);">
-        <option value="">Select a case (${state.historicalCases.length} available)…</option>
+        <option value="">Select a recommended precedent (${relatedCases.length} available)…</option>
         ${topOptionsHtml}
-        <optgroup label="All Precedent Cases (${state.historicalCases.length})">
-          ${state.historicalCases.map(hc => `<option value="${hc.id}">${esc(hc.case_name)}${hc.year ? ` (${hc.year})` : ""} — ${esc(hc.court || "Court")}</option>`).join("")}
+        <optgroup label="Relevant Precedents (${relatedCases.length} shortlisted)">
+          ${relatedCases.map(hc => `<option value="${hc.id}">${esc(hc.case_name)}${hc.year ? ` (${hc.year})` : ""} — ${esc(hc.court || "Court")}${hc.relevance_score != null ? ` [Score: ${hc.relevance_score}]` : ""}</option>`).join("")}
         </optgroup>
       </select>
+      <div id="compare-precedent-preview" style="margin-top:10px;"></div>
       <div class="form-actions" style="margin-top:14px;">
         <button class="btn primary" id="compare-run">Compare Precedent</button>
       </div>
@@ -895,11 +1036,33 @@ async function renderCompareTab(holder) {
 
   const btnRun = document.getElementById("compare-run");
   const selCase = document.getElementById("compare-select");
+  const previewDiv = document.getElementById("compare-precedent-preview");
+
+  function updatePreview() {
+    const selId = selCase.value;
+    const found = relatedCases.find(c => c.id === selId);
+    if (found) {
+      previewDiv.innerHTML = `
+        <div style="padding:10px 14px; background:var(--cream-bg, #fdfbf7); border:1px solid var(--cream-border, #e2d9c8); border-left:3px solid var(--navy, #1a2a3a); border-radius:4px; font-size:13px;">
+          <div style="font-weight:600; color:var(--navy-dark, #0d1b2a); margin-bottom:4px;">
+            ${esc(found.case_name)} (${esc(found.court || "Court")} ${found.year || ""})
+          </div>
+          <div style="color:var(--text-mid, #444); line-height:1.5;">
+            <strong>Relevance:</strong> ${esc(found.why_relevant || "Identified as legally relevant precedent via citation and semantic matching.")}
+          </div>
+        </div>
+      `;
+    } else {
+      previewDiv.innerHTML = "";
+    }
+  }
+
+  selCase.addEventListener("change", updatePreview);
 
   if (state.compareTargetId) {
     selCase.value = state.compareTargetId;
     state.compareTargetId = null;
-    // Auto-trigger comparison if requested from a card
+    updatePreview();
     setTimeout(() => btnRun.click(), 50);
   }
 
@@ -929,18 +1092,23 @@ async function renderCompareTab(holder) {
 }
 
 function renderComparisonResult(holder, result) {
-  const cur = result.current_case || {}, hist = result.historical_case || {};
+  const cur = result.current_case || state.currentCase || {}, hist = result.historical_case || {};
+  const curFacts = cur.facts || state.currentCase?.facts || "—";
+  const curIssues = cur.issues || cur.charges_issues || state.currentCase?.issues || state.currentCase?.charges_issues || "—";
+  const histSummary = hist.summary || "Summary pending review.";
+  const histOutcome = hist.outcome || "Settled by Court judgment.";
+
   holder.appendChild(el(`
     <div class="grid cols-2" style="margin-bottom:20px;">
       <div class="card">
-        <h3>Current case</h3>
-        <div style="font-size:13px;"><b>Facts:</b> ${esc(cur.facts || "—")}</div>
-        <div style="font-size:13px; margin-top:6px;"><b>Issues:</b> ${esc(cur.issues || "—")}</div>
+        <h3 style="color:var(--primary); margin-top:0;">Current Case (${esc(cur.title || state.currentCase?.title || "Lead Dispute")})</h3>
+        <div style="font-size:13px; margin-top:6px; line-height:1.5;"><b>Facts:</b> ${esc(curFacts.slice(0, 350))}${curFacts.length > 350 ? "…" : ""}</div>
+        <div style="font-size:13px; margin-top:8px; line-height:1.5;"><b>Issues:</b> ${esc(curIssues.slice(0, 350))}${curIssues.length > 350 ? "…" : ""}</div>
       </div>
       <div class="card">
-        <h3>${esc(hist.case_name)}</h3>
-        <div style="font-size:13px;"><b>Summary:</b> ${esc((hist.summary || "").slice(0, 300))}…</div>
-        <div style="font-size:13px; margin-top:6px;"><b>Outcome:</b> ${esc(hist.outcome || "—")}</div>
+        <h3 style="color:#b06000; margin-top:0;">Precedent: ${esc(hist.case_name || "Historical Case")}</h3>
+        <div style="font-size:13px; margin-top:6px; line-height:1.5;"><b>Summary:</b> ${esc(histSummary.slice(0, 350))}${histSummary.length > 350 ? "…" : ""}</div>
+        <div style="font-size:13px; margin-top:8px; line-height:1.5;"><b>Outcome:</b> ${esc(histOutcome)}</div>
       </div>
     </div>
   `));
@@ -965,9 +1133,44 @@ function renderComparisonResult(holder, result) {
 }
 
 // ------------------------------------------------------------- router ---
+function parseHash() {
+  const hash = window.location.hash.replace(/^#\/?/, "");
+  if (!hash) return null;
+  const parts = hash.split("/");
+  if (parts[0] === "case" && parts[1]) {
+    return { view: "case", caseId: parts[1], tab: parts[2] || "overview", target: parts[3] || null };
+  }
+  if (["dashboard", "corpus", "search", "new-case"].includes(parts[0])) {
+    return { view: parts[0] };
+  }
+  return null;
+}
+
+function updateHash() {
+  if (state.view === "case" && state.currentCaseId) {
+    const target = `#case/${state.currentCaseId}/${state.currentTab || "overview"}`;
+    if (window.location.hash !== target) history.replaceState(null, "", target);
+  } else if (["dashboard", "corpus", "search", "new-case"].includes(state.view)) {
+    const target = `#${state.view}`;
+    if (window.location.hash !== target) history.replaceState(null, "", target);
+  }
+}
+
 async function render(opts = { refetch: true }) {
   if (opts.refetch) {
     await fetchCases();
+  }
+  const route = parseHash();
+  if (route) {
+    state.view = route.view;
+    if (route.caseId && state.cases.some(c => c.id === route.caseId)) {
+      state.currentCaseId = route.caseId;
+      state.currentTab = route.tab || "overview";
+      if (route.target) state.compareTargetId = route.target;
+      await loadCaseData();
+      renderSidebar();
+      return renderCaseWorkspace();
+    }
   }
   renderSidebar();
   if (state.view === "dashboard") return renderDashboard();
@@ -976,6 +1179,8 @@ async function render(opts = { refetch: true }) {
   if (state.view === "new-case") return renderNewCase();
   if (state.view === "case") return renderCaseWorkspace();
 }
+
+window.addEventListener("hashchange", () => render({ refetch: false }));
 
 // --------------------------------------------------------- legal research search
 async function renderSearch() {

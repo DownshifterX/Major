@@ -29,10 +29,14 @@ dataset - hugging face/*.csv
 backend/data/*.db*
 backend/data/*.pkl
 backend/data/uploads/*
+backend/data/document_cache/*
 nya-ai/backend/data/*.db*
 nya-ai/backend/data/*.pkl
 nya-ai/backend/data/uploads/*
 download.log
+
+# IDE & Editor
+.vscode/
 
 # Frontend & OS
 node_modules/

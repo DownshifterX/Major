@@ -1,4 +1,8 @@
-import os, sys
+import os, sys, warnings
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+warnings.filterwarnings("ignore")
+
 from pathlib import Path
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
@@ -19,14 +23,29 @@ Base.metadata.create_all(bind=engine)
 async def lifespan(app: FastAPI):
     try:
         from .services.citation_graph import get_citation_graph
+        from .services.embeddings import get_embedding_provider
         db = SessionLocal()
-        try: get_citation_graph(db)
-        finally: db.close()
+        try:
+            get_citation_graph(db)
+        finally:
+            db.close()
+        get_embedding_provider()
     except Exception as exc:
-        import warnings; warnings.warn(f"Corpus warmup notice: {exc}")
+        warnings.warn(f"Corpus warmup notice: {exc}")
     yield
 
 app = FastAPI(title="NyaAi — Justice. Reimagined.", version="0.1.0", lifespan=lifespan)
+
+@app.middleware("http")
+async def add_no_cache_headers(request, call_next):
+    response = await call_next(request)
+    path = request.url.path
+    if path.endswith((".js", ".css", ".html")) or path in ("/", "/index.html"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv("CORS_ORIGINS", "*").split(","),

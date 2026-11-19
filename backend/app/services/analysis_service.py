@@ -148,16 +148,23 @@ def run_comparison(db: Session, case: models.Case, historical_case_id: str) -> D
     for j, c in enumerate(hist_chunks, start=len(sources) + 1):
         sources.append(_make_source_entry(f"S{j}", c, hc.case_name))
 
-    curr_payload = {"title": case.title, "facts": case.facts, "issues": case.charges_issues, "provisions": case.provisions}
-    hist_payload = {"case_name": hc.case_name, "court": hc.court, "year": hc.year, "summary": hc.summary, "outcome": hc.outcome}
+    curr_payload = {"title": case.title, "court": case.court, "facts": case.facts or "", "issues": case.charges_issues or case.issues or "", "provisions": case.provisions or []}
+    hist_payload = {"case_name": hc.case_name, "court": hc.court, "year": hc.year, "summary": hc.summary or "", "outcome": hc.outcome or ""}
 
     provider = get_llm_provider()
     result = provider.generate_structured(prompts.comparison_prompt(curr_payload, hist_payload, sources), {"sources": sources}, analysis_type="comparison")
     analysis = _save_analysis(db, case.id, "comparison", result, provider.__class__.__name__, sources)
-    hist_info = {"id": hc.id, "case_name": hc.case_name, "court": hc.court, "year": hc.year, "citation": hc.citation}
-    return {"analysis_id": analysis.id, "historical_case_id": hc.id, "historical_case": hist_info, "historical_case_name": hc.case_name, **result, "citations": _citations_payload(analysis)}
+    hist_info = {"id": hc.id, "case_name": hc.case_name, "court": hc.court, "year": hc.year, "citation": hc.citation, "summary": hc.summary, "outcome": hc.outcome}
+    curr_info = {"id": case.id, "title": case.title, "court": case.court, "facts": case.facts or "", "issues": case.charges_issues or case.issues or ""}
+    return {"analysis_id": analysis.id, "historical_case_id": hc.id, "current_case": curr_info, "historical_case": hist_info, "historical_case_name": hc.case_name, **result, "citations": _citations_payload(analysis)}
 
-def run_brief(db: Session, case: models.Case) -> Dict[str, Any]:
+def run_brief(db: Session, case: models.Case, force_refresh: bool = False) -> Dict[str, Any]:
+    # Return latest stored brief if it has content (avoid re-running LLM every GET)
+    stored = (db.query(models.Analysis).filter(models.Analysis.case_id == case.id, models.Analysis.analysis_type == "brief")
+              .order_by(models.Analysis.created_at.desc()).first())
+    if not force_refresh and stored and stored.content.get("case_overview"):
+        return {"analysis_id": stored.id, **stored.content, "citations": _citations_payload(stored)}
+
     prior_analyses: Dict[str, Any] = {}
     for an_type, runner in [("similar_cases", run_similar_cases), ("legal_provisions", run_legal_provisions),
                             ("prosecution_defence", run_prosecution_defence), ("evidence_gaps", run_evidence_gaps),
@@ -166,8 +173,35 @@ def run_brief(db: Session, case: models.Case) -> Dict[str, Any]:
                     .order_by(models.Analysis.created_at.desc()).first())
         prior_analyses[an_type] = existing.content if existing else runner(db, case)
 
+    # Build relevant_laws from legal_provisions and relevant_precedents from similar_cases if available
+    legal_prov = prior_analyses.get("legal_provisions", {})
+    if isinstance(legal_prov, dict):
+        laws_list = legal_prov.get("provisions") or legal_prov.get("legal_provisions") or []
+        # Flatten if nested (e.g. list of dicts)
+        flat_laws = [p.get("provision", p) if isinstance(p, dict) else p for p in laws_list]
+    else:
+        flat_laws = []
+
+    sim = prior_analyses.get("similar_cases", {})
+    if isinstance(sim, dict):
+        prec_list = [sc.get("case_name") for sc in (sim.get("similar_cases") or []) if sc.get("case_name")]
+    else:
+        prec_list = []
+
     case_payload = {"title": case.title, "court": case.court, "judge": case.judge, "case_type": case.case_type, "facts": case.facts, "issues": case.charges_issues}
     provider = get_llm_provider()
     result = provider.generate_structured(prompts.brief_prompt(case_payload, prior_analyses), {"case": case_payload, "prior_analyses": prior_analyses}, analysis_type="brief")
+
+    # Backfill empty relevant_laws / relevant_precedents from prior analyses or case records
+    if not result.get("relevant_laws"):
+        if flat_laws:
+            result["relevant_laws"] = flat_laws
+        elif case.provisions and isinstance(case.provisions, list):
+            prov_strs = [f"{cp.get('section', '')} {cp.get('act', '')}".strip() if isinstance(cp, dict) else str(cp).strip() for cp in case.provisions]
+            result["relevant_laws"] = [p for p in prov_strs if p]
+
+    if not result.get("relevant_precedents") and prec_list:
+        result["relevant_precedents"] = prec_list
+
     analysis = _save_analysis(db, case.id, "brief", result, provider.__class__.__name__, sources=[])
     return {"analysis_id": analysis.id, **result, "citations": []}

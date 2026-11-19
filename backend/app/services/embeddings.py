@@ -26,10 +26,21 @@ class SentenceTransformerEmbeddingProvider(EmbeddingProvider):
         try:
             self.model = SentenceTransformer(model_name, local_files_only=True)
         except Exception:
+            online = False
             try:
-                self.model = SentenceTransformer(model_name)
+                import socket
+                with socket.create_connection(("huggingface.co", 443), timeout=0.8):
+                    online = True
             except Exception:
-                # If network fails, fallback to local hashing provider seamlessly
+                online = False
+
+            if online:
+                try:
+                    self.model = SentenceTransformer(model_name)
+                except Exception:
+                    self.model = None
+                    self._fallback = LocalHashingEmbeddingProvider()
+            else:
                 self.model = None
                 self._fallback = LocalHashingEmbeddingProvider()
 
