@@ -21,10 +21,23 @@ class SentenceTransformerEmbeddingProvider(EmbeddingProvider):
     def __init__(self):
         try: from sentence_transformers import SentenceTransformer
         except ImportError: raise RuntimeError("sentence-transformers not installed.")
-        self.model = SentenceTransformer(os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"))
+        model_name = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
+        # Try local cache first to prevent blocking when offline or behind firewalls
+        try:
+            self.model = SentenceTransformer(model_name, local_files_only=True)
+        except Exception:
+            try:
+                self.model = SentenceTransformer(model_name)
+            except Exception:
+                # If network fails, fallback to local hashing provider seamlessly
+                self.model = None
+                self._fallback = LocalHashingEmbeddingProvider()
 
     def embed(self, texts: List[str]) -> List[List[float]]:
-        return self.model.encode(texts, convert_to_numpy=True).astype(float).tolist() if texts else []
+        if not texts: return []
+        if getattr(self, "model", None) is not None:
+            return self.model.encode(texts, convert_to_numpy=True).astype(float).tolist()
+        return self._fallback.embed(texts)
 
 _provider_singleton: EmbeddingProvider | None = None
 _provider_singleton_name: str | None = None
