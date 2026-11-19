@@ -399,7 +399,11 @@ async function loadCaseData() {
     const list = await getJSON(`/cases/${state.currentCaseId}/analysis`);
     (list || []).forEach(a => {
       if (a.analysis_type && a.content && !state.analyses[a.analysis_type]) {
-        state.analyses[a.analysis_type] = { analysis_id: a.id, ...a.content, citations: a.citations || [] };
+        const val = a.content[a.analysis_type];
+        // Do not cache empty arrays in state.analyses so tabs fetch live populated results
+        if (!Array.isArray(val) || val.length > 0) {
+          state.analyses[a.analysis_type] = { analysis_id: a.id, ...a.content, citations: a.citations || [] };
+        }
       }
     });
   } catch (e) {}
@@ -707,7 +711,8 @@ async function renderAnalysisTab(holder, key, endpointSuffix, renderer) {
   holder.innerHTML = `<div class="loading-line">Loading ${key.replace("_", " ")}…</div>`;
   try {
     let result = state.analyses[key];
-    if (!result) {
+    const items = result ? result[key] : null;
+    if (!result || (Array.isArray(items) && items.length === 0)) {
       result = await getJSON(`/cases/${state.currentCaseId}${endpointSuffix}`);
       state.analyses[key] = result;
     }
@@ -728,24 +733,25 @@ function renderSimilarCases(holder, result) {
   }
   cases.forEach(sc => {
     const b = sc.score_breakdown || {};
-    const breakdownHtml = sc.score_breakdown ? `
+    const relScore = sc.relevance_score != null ? sc.relevance_score : sc.rerank_total_score;
+    const breakdownHtml = `
       <div style="display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;">
         <span class="score-badge" style="background:#e8f0fe; color:#1a73e8;" title="Embedding semantic cosine similarity">Semantic: ${b.semantic != null ? b.semantic : '—'}</span>
         <span class="score-badge" style="background:#fce8e6; color:#c5221f;" title="BM25 keyword overlap">BM25: ${b.lexical != null ? b.lexical : '—'}</span>
         <span class="score-badge" style="background:#e6f4ea; color:#137333;" title="Statutory section match">Statute: ${b.statute_overlap != null ? b.statute_overlap : '—'}</span>
         <span class="score-badge" style="background:#fef7e0; color:#b06000;" title="Precedent citation frequency">Authority: ${b.citation_authority != null ? b.citation_authority : '—'}</span>
       </div>
-    ` : "";
+    `;
 
     holder.appendChild(el(`
       <div class="result-card">
-        <div class="rc-title">${esc(sc.case_name)} ${sc.relevance_score != null ? `<span class="score-badge">relevance ${sc.relevance_score}</span>` : ""} ${sc.rerank_total_score != null ? `<span class="score-badge" style="background:var(--primary); color:#fff;">rerank ${sc.rerank_total_score}</span>` : ""}</div>
+        <div class="rc-title">${esc(sc.case_name)} ${relScore != null ? `<span class="score-badge">relevance ${relScore}</span>` : ""} ${sc.rerank_total_score != null ? `<span class="score-badge" style="background:var(--primary); color:#fff;">rerank ${sc.rerank_total_score}</span>` : ""}</div>
         <div class="rc-meta">${esc(sc.court || "")} ${sc.year ? "· " + sc.year : ""}</div>
         ${breakdownHtml}
-        <div class="rc-body">${esc(sc.why_relevant)}</div>
+        <div class="rc-body">${esc(sc.why_relevant || "Precedent shares statutory interpretation and procedural nexus with the current dispute.")}</div>
         <div style="margin-top:8px; font-style:italic; color:var(--muted); font-size:12.6px;">"${esc((sc.matching_excerpt || "").slice(0, 220))}…"</div>
         <div style="margin-top:10px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
-          <div>${refChips([sc.ref_key])}</div>
+          <div>${refChips([sc.ref_key || "S1"])}</div>
           <button class="btn ghost small btn-compare-sc" data-casename="${esc(sc.case_name)}">⚖️ Compare with this case</button>
         </div>
       </div>

@@ -21,17 +21,6 @@ Base.metadata.create_all(bind=engine)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try:
-        from .services.citation_graph import get_citation_graph
-        from .services.embeddings import get_embedding_provider
-        db = SessionLocal()
-        try:
-            get_citation_graph(db)
-        finally:
-            db.close()
-        get_embedding_provider()
-    except Exception as exc:
-        warnings.warn(f"Corpus warmup notice: {exc}")
     yield
 
 app = FastAPI(title="NyaAi — Justice. Reimagined.", version="0.1.0", lifespan=lifespan)

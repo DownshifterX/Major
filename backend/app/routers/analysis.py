@@ -27,11 +27,14 @@ def analyze_case(case_id: str, db: Session = Depends(get_db)):
     return results
 
 def _get_stored_or_run(db: Session, case: models.Case, analysis_type: str, runner):
-    stored = (db.query(models.Analysis)
-              .filter(models.Analysis.case_id == case.id, models.Analysis.analysis_type == analysis_type)
-              .order_by(models.Analysis.created_at.desc()).first())
-    if stored and stored.content:
-        return {"analysis_id": stored.id, **stored.content, "citations": svc._citations_payload(stored)}
+    stored_rows = (db.query(models.Analysis)
+                   .filter(models.Analysis.case_id == case.id, models.Analysis.analysis_type == analysis_type)
+                   .order_by(models.Analysis.created_at.desc()).all())
+    for stored in stored_rows:
+        if stored and stored.content:
+            items = stored.content.get(analysis_type)
+            if items is None or (isinstance(items, list) and len(items) > 0) or isinstance(items, dict):
+                return {"analysis_id": stored.id, **stored.content, "citations": svc._citations_payload(stored)}
     return runner(db, case)
 
 @router.get("/{case_id}/similar-cases")
@@ -84,4 +87,11 @@ def export_brief(case_id: str, db: Session = Depends(get_db)):
 def list_analyses(case_id: str, db: Session = Depends(get_db)):
     _get_case(db, case_id)
     rows = db.query(models.Analysis).filter(models.Analysis.case_id == case_id).order_by(models.Analysis.created_at.desc()).all()
-    return [{"id": r.id, "analysis_type": r.analysis_type, "provider": r.provider, "created_at": r.created_at.isoformat(), "content": r.content} for r in rows]
+    valid_rows = []
+    for r in rows:
+        content = r.content or {}
+        val = content.get(r.analysis_type)
+        if isinstance(val, list) and len(val) == 0:
+            continue
+        valid_rows.append(r)
+    return [{"id": r.id, "analysis_type": r.analysis_type, "provider": r.provider, "created_at": r.created_at.isoformat(), "content": r.content} for r in valid_rows]
