@@ -1,0 +1,99 @@
+import concurrent.futures
+from fastapi import APIRouter, Depends, HTTPException, Response
+from sqlalchemy.orm import Session
+from .. import models, schemas
+from ..database import get_db, SessionLocal
+from ..services import analysis_service as svc
+from ..services import export as export_service
+
+router = APIRouter(prefix="/cases", tags=["analysis"])
+
+def _get_case(db: Session, case_id: str) -> models.Case:
+    case = db.get(models.Case, case_id)
+    if not case: raise HTTPException(404, "Case not found")
+    return case
+
+@router.post("/{case_id}/analyze")
+def analyze_case(case_id: str, db: Session = Depends(get_db)):
+    case = _get_case(db, case_id)
+    results = {
+        "similar_cases": svc.run_similar_cases(db, case),
+        "legal_provisions": svc.run_legal_provisions(db, case),
+        "prosecution_defence": svc.run_prosecution_defence(db, case),
+        "evidence_gaps": svc.run_evidence_gaps(db, case),
+        "contradictions": svc.run_contradictions(db, case),
+    }
+    # pyrefly: ignore[bad-assignment]
+    case.status = "analyzed"; db.commit()
+    return results
+
+def _get_stored_or_run(db: Session, case: models.Case, analysis_type: str, runner):
+    stored_rows = (db.query(models.Analysis)
+                   .filter(models.Analysis.case_id == case.id, models.Analysis.analysis_type == analysis_type)
+                   .order_by(models.Analysis.created_at.desc()).all())
+    for stored in stored_rows:
+        if stored and stored.content:
+            items = stored.content.get(analysis_type)
+            if items is None or (isinstance(items, list) and len(items) > 0) or isinstance(items, dict):
+                # pyrefly: ignore[invalid-argument]
+                return {"analysis_id": stored.id, **stored.content, "citations": svc._citations_payload(stored)}
+    return runner(db, case)
+
+@router.get("/{case_id}/similar-cases")
+def get_similar_cases(case_id: str, db: Session = Depends(get_db)):
+    case = _get_case(db, case_id)
+    return _get_stored_or_run(db, case, "similar_cases", svc.run_similar_cases)
+
+@router.get("/{case_id}/legal-provisions")
+def get_legal_provisions(case_id: str, db: Session = Depends(get_db)):
+    case = _get_case(db, case_id)
+    return _get_stored_or_run(db, case, "legal_provisions", svc.run_legal_provisions)
+
+@router.get("/{case_id}/prosecution-defence")
+def get_prosecution_defence(case_id: str, db: Session = Depends(get_db)):
+    case = _get_case(db, case_id)
+    return _get_stored_or_run(db, case, "prosecution_defence", svc.run_prosecution_defence)
+
+@router.get("/{case_id}/evidence-gaps")
+def get_evidence_gaps(case_id: str, db: Session = Depends(get_db)):
+    case = _get_case(db, case_id)
+    return _get_stored_or_run(db, case, "evidence_gaps", svc.run_evidence_gaps)
+
+@router.get("/{case_id}/contradictions")
+def get_contradictions(case_id: str, db: Session = Depends(get_db)):
+    case = _get_case(db, case_id)
+    return _get_stored_or_run(db, case, "contradictions", svc.run_contradictions)
+
+@router.post("/{case_id}/compare")
+def compare_case(case_id: str, payload: schemas.CompareRequest, db: Session = Depends(get_db)):
+    try:
+        return svc.run_comparison(db, _get_case(db, case_id), payload.historical_case_id)
+    except ValueError as e:
+        raise HTTPException(404, str(e))
+
+@router.get("/{case_id}/brief")
+def get_brief(case_id: str, refresh: bool = False, db: Session = Depends(get_db)):
+    return svc.run_brief(db, _get_case(db, case_id), force_refresh=refresh)
+
+@router.post("/{case_id}/brief")
+def regenerate_brief(case_id: str, db: Session = Depends(get_db)):
+    return svc.run_brief(db, _get_case(db, case_id), force_refresh=True)
+
+@router.get("/{case_id}/brief/export")
+def export_brief(case_id: str, db: Session = Depends(get_db)):
+    case = _get_case(db, case_id)
+    pdf_bytes = export_service.generate_brief_pdf(db, case)
+    return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=brief_{case_id}.pdf"})
+
+@router.get("/{case_id}/analysis")
+def list_analyses(case_id: str, db: Session = Depends(get_db)):
+    _get_case(db, case_id)
+    rows = db.query(models.Analysis).filter(models.Analysis.case_id == case_id).order_by(models.Analysis.created_at.desc()).all()
+    valid_rows = []
+    for r in rows:
+        content = r.content or {}
+        val = content.get(r.analysis_type)
+        if isinstance(val, list) and len(val) == 0:
+            continue
+        valid_rows.append(r)
+    return [{"id": r.id, "analysis_type": r.analysis_type, "provider": r.provider, "created_at": r.created_at.isoformat(), "content": r.content} for r in valid_rows]
