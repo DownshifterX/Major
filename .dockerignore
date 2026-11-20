@@ -1,0 +1,35 @@
+# Git & Version Control
+.git/
+.gitignore
+
+# Virtual Environments & Python Cache
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Large Raw Datasets (not needed in container runtime)
+data/downloaded/
+data/raw/
+dataset - hugging face/
+downloaded_cases/
+*.parquet
+*.xlsx
+*.csv
+download.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Documentation & Evaluation Artifacts
+docs/
+evaluation/
+tests/
+*.md
