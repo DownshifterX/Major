@@ -23,6 +23,7 @@ def analyze_case(case_id: str, db: Session = Depends(get_db)):
         "evidence_gaps": svc.run_evidence_gaps(db, case),
         "contradictions": svc.run_contradictions(db, case),
     }
+    # pyrefly: ignore[bad-assignment]
     case.status = "analyzed"; db.commit()
     return results
 
@@ -34,6 +35,7 @@ def _get_stored_or_run(db: Session, case: models.Case, analysis_type: str, runne
         if stored and stored.content:
             items = stored.content.get(analysis_type)
             if items is None or (isinstance(items, list) and len(items) > 0) or isinstance(items, dict):
+                # pyrefly: ignore[invalid-argument]
                 return {"analysis_id": stored.id, **stored.content, "citations": svc._citations_payload(stored)}
     return runner(db, case)
 
