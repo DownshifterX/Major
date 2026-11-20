@@ -23,7 +23,7 @@ from bs4 import BeautifulSoup
 
 # Ensure backend path is on sys.path
 SCRIPT_DIR = Path(__file__).resolve().parent
-BACKEND_DIR = SCRIPT_DIR.parent / "backend"
+BACKEND_DIR = SCRIPT_DIR / "backend"
 sys.path.insert(0, str(BACKEND_DIR))
 sys.path.insert(0, str(SCRIPT_DIR))
 
@@ -40,9 +40,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("train_and_ingest_land_cases")
 
-DOWNLOADED_DIR = SCRIPT_DIR.parent / "data" / "downloaded"
-if not DOWNLOADED_DIR.exists():
-    DOWNLOADED_DIR = SCRIPT_DIR / "downloaded_cases"
+DOWNLOADED_DIR = SCRIPT_DIR / "downloaded_cases"
 
 
 def extract_html_text(file_path: Path) -> dict:
